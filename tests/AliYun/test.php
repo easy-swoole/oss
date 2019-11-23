@@ -1,7 +1,3 @@
-# oss
-
-## 阿里云调用
-```php
 <?php
 /**
  * Created by PhpStorm.
@@ -23,4 +19,3 @@ go(function (){
     $data = $client->putObject('tioncicoxyz','test',__FILE__);
     var_dump($data);
 });
-```

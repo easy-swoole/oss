@@ -26,3 +26,22 @@ go(function (){
     var_dump($data);
 });
 ```
+
+## 七牛云调用
+根据七牛云官方sdk修改,走通了oss的大部分单元测试,用法和七牛云oss完全一致
+操作文档可直接查看七牛云官方文档 https://developer.qiniu.com/kodo/sdk/1241/php
+
+```php
+include "../../vendor/autoload.php";
+include "../../phpunit.php";
+go(function (){
+    
+    $auth = new \EasySwoole\Oss\QiNiu\Auth(QINIU_ACCESS_KEY,QINIU_SECRET_KEY);
+
+    $key = 'formPutFileTest';
+    $token = $auth->uploadToken('tioncico', $key);
+    $upManager = new \EasySwoole\Oss\QiNiu\Storage\UploadManager();
+    list($ret, $error) = $upManager->putFile($token, $key, __file__, null, 'text/plain', null);
+    var_dump($ret,$error);
+});
+```

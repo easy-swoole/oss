@@ -9,8 +9,10 @@ defined("OSS_CALLBACK_URL") ?: define('OSS_CALLBACK_URL', 'http://xxx.cn/Api/Com
 
 defined("TX_APP_ID") ?: define('TX_APP_ID', '1253459008');
 defined("TX_BUCKET") ?: define('TX_BUCKET', 'tioncico-test');
-defined("TX_REGION") ?: define('TX_REGION', '4iP6f6b27oJzLFn376MAgRkscENH7h');
-defined("TX_SECRETID") ?: define('TX_SECRETID', 'AKIDjjS6Vef7QTFkjSb71e0A4g1FCtKZRU3S ');
-defined("TX_SECRETKEY") ?: define('TX_SECRETKEY', 'HGyOX7PdbLp36tQhhPqAGitoSpwlKipf');
+defined("TX_REGION") ?: define('TX_REGION', 'xxx');
+defined("TX_SECRETID") ?: define('TX_SECRETID', 'xxx ');
+defined("TX_SECRETKEY") ?: define('TX_SECRETKEY', 'xxx');
 
+defined("QINIU_ACCESS_KEY") ?: define('QINIU_ACCESS_KEY', 'xxx');
+defined("QINIU_SECRET_KEY") ?: define('QINIU_SECRET_KEY', 'xxx');
 

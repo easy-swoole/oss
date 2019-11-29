@@ -1,6 +1,8 @@
 # oss
 
 ## 阿里云调用
+根据阿里云官方sdk修改,全部方法都一致,走通了所有官方的client请求类单元测试,全部调用方法都和阿里云一直
+文档可查看阿里云官方文档:https://help.aliyun.com/document_detail/32099.html?spm=a2c4g.11186623.2.17.de715d26YNLCah#concept-32099-zh
 ```php
 <?php
 /**
@@ -22,5 +24,24 @@ go(function (){
     $client = new \EasySwoole\Oss\AliYun\OssClient($config);
     $data = $client->putObject('tioncicoxyz','test',__FILE__);
     var_dump($data);
+});
+```
+
+## 七牛云调用
+根据七牛云官方sdk修改,走通了oss的大部分单元测试,用法和七牛云oss完全一致
+操作文档可直接查看七牛云官方文档 https://developer.qiniu.com/kodo/sdk/1241/php
+
+```php
+include "../../vendor/autoload.php";
+include "../../phpunit.php";
+go(function (){
+    
+    $auth = new \EasySwoole\Oss\QiNiu\Auth(QINIU_ACCESS_KEY,QINIU_SECRET_KEY);
+
+    $key = 'formPutFileTest';
+    $token = $auth->uploadToken('tioncico', $key);
+    $upManager = new \EasySwoole\Oss\QiNiu\Storage\UploadManager();
+    list($ret, $error) = $upManager->putFile($token, $key, __file__, null, 'text/plain', null);
+    var_dump($ret,$error);
 });
 ```

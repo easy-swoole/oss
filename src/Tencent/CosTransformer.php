@@ -2,81 +2,94 @@
 
 namespace EasySwoole\Oss\Tencent;
 
-use Guzzle\Service\Description\Parameter;
-use Guzzle\Service\Description\ServiceDescription;
-use GuzzleHttp\HandlerStack;
+use EasySwoole\HttpClient\Bean\Url;
+use EasySwoole\HttpClient\Exception\InvalidUrl;
+use EasySwoole\Oss\Tencent\Http\Command;
+use EasySwoole\Oss\Tencent\Http\HttpClient;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use EasySwoole\Oss\Tencent\Signature;
 use EasySwoole\Oss\Tencent\TokenListener;
-use GuzzleHttp\Command\Guzzle\Description;
-use GuzzleHttp\Command\Guzzle\GuzzleClient;
-use GuzzleHttp\Command\CommandInterface;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\Uri;
 
 
-class CosTransformer {
+class CosTransformer
+{
+    /**
+     * @var $config Config
+     */
     private $config;
     private $operation;
 
-    public function __construct($config ,$operation) {
+    public function __construct($config, $operation)
+    {
         $this->config = $config;
         $this->operation = $operation;
     }
 
     // format bucket style
-    public function bucketStyleTransformer(CommandInterface $command, RequestInterface $request) {
+    public function bucketStyleTransformer(Command $command, HttpClient $request)
+    {
         $action = $command->getName();
-        if ($action == 'ListBuckets') {
-            return $request->withUri(new Uri($this->config['schema']."://service.cos.myqcloud.com/"));
-        }
+        $path = '';
         $operation = $this->operation;
-        $bucketname = $command['Bucket'];
-
-        $appId = $this->config['appId'];
-        if ($appId != null && endWith($bucketname, '-'.$appId) == False)
-        {
-            $bucketname = $bucketname.'-'.$appId;
+//        var_dump($operation);
+        $httpMethod = $operation['httpMethod'];
+//        $request->setMethod($httpMethod);
+        if ($action == 'ListBuckets') {
+            $request->setUrl($this->config->getSchema() . "://service.cos.myqcloud.com/");
+            $request->setMethod($httpMethod);
+            return $request;
         }
-        $command['Bucket'] = $bucketname;
-        $path = ''; 
-        $http_method = $operation['httpMethod'];
+        $bucketName = $command['Bucket'];
+
+        $appId = $this->config->getAppId();
+        if ($appId != null && OssUtil::endWith($bucketName, '-' . $appId) == False) {
+            $bucketName = $bucketName . '-' . $appId;
+        }
+        $command['Bucket'] = $bucketName;
+
         $uri = $operation['uri'];
-        
+
         // Hoststyle is used by default
         // Pathstyle
-        if ($this->config['pathStyle'] != true) {
+        if ($this->config->getPathStyle() != true) {
             if (isset($operation['parameters']['Bucket']) && $command->hasParam('Bucket')) {
                 $uri = str_replace("{Bucket}", '', $uri);
-            }   
+            }
             if (isset($operation['parameters']['Key']) && $command->hasParam('Key')) {
-                $uri = str_replace("{/Key*}", encodeKey($command['Key']), $uri);
+                $uri = str_replace("{/Key*}", OssUtil::encodeKey($command['Key']), $uri);
             }
         }
-        
-        $host = $bucketname. '.cos.' . $this->config['region'] . '.' . $this->config['endpoint'];
-        if ($this->config['ip'] != null) {
-            $host = $this->config['ip'];
-            if ($this->config['port'] != null) {
-                $host = $this->config['ip'] . ":" . $this->config['port'];
+
+        $host = $bucketName . '.cos.' . $this->config->getRegion() . '.' . $this->config->getEndpoint();
+        if ($this->config->getIp() != null) {
+            $host = $this->config->getIp();
+            if ($this->config->getPort() != null) {
+                $host = $this->config->getIp() . ":" . $this->config->getPort();
             }
         }
-        $path = $this->config['schema'].'://'. $host . $uri;
-        $uri = new Uri($path);
-        $query = $request->getUri()->getQuery();
+//        var_dump($host);
+
+        $path = $this->config->getSchema() . '://' . $host . $uri;
+        $query = $request->getUrl()->getQuery();
+
+        $info = parse_url($path);
+        if (empty($info['scheme'])) {
+            $info = parse_url('//' . $path); // 防止无scheme导致的host解析异常 默认作为http处理
+        }
+        $uri = new Url($info);
+
         if ($uri->getQuery() != $query && $uri->getQuery() != "") {
-            $query =   $uri->getQuery() . "&" . $request->getUri()->getQuery();
+            $query = $uri->getQuery() . "&" . $request->getUrl()->getQuery();
         }
-        $uri = $uri->withQuery($query);
-        return $request->withUri($uri);
+
+        $uri->setQuery(OssUtil::filterQueryAndFragment((string)$query));
+        $request->setUrl($uri);
+        $request->setMethod($httpMethod);
+        return $request;
     }
 
     // format upload body
-    public function uploadBodyTransformer(CommandInterface $command, $request, $bodyParameter = 'Body', $sourceParameter = 'SourceFile') {
-        
+    public function uploadBodyTransformer(Command $command, $request, $bodyParameter = 'Body', $sourceParameter = 'SourceFile')
+    {
         $operation = $this->operation;
         if (!isset($operation['parameters']['Body'])) {
             return $request;
@@ -91,13 +104,13 @@ class CosTransformer {
         if (null !== $body) {
             return $request;
         } else {
-            throw new Exception\InvalidArgumentException(
-                "You must specify a non-null value for the {$bodyParameter} or {$sourceParameter} parameters.");
+            throw new InvalidUrl("You must specify a non-null value for the {$bodyParameter} or {$sourceParameter} parameters.");
         }
     }
 
     // update md5
-    public function md5Transformer(CommandInterface $command, $request) {
+    public function md5Transformer(Command $command, $request)
+    {
         $operation = $this->operation;
         if (isset($operation['data']['contentMd5'])) {
             $request = $this->addMd5($request);
@@ -114,29 +127,32 @@ class CosTransformer {
     }
 
     // count md5
-    private function addMd5($request) {
-        $body = $request->getBody();
-        if ($body && $body->getSize() > 0) {
+    private function addMd5(HttpClient $request)
+    {
+        $body = $request->getClient()->getBody();
+        if ($body && strlen($body) > 0) {
             $md5 = base64_encode(md5($body, true));
-            return $request->withHeader('Content-MD5', $md5);
+            return $request->setHeader('Content-MD5', $md5,false);
         }
         return $request;
     }
 
     // count md5
-    public function specialParamTransformer(CommandInterface $command, $request) {
+    public function specialParamTransformer(Command $command,HttpClient $request)
+    {
         $action = $command->getName();
         if ($action == 'PutBucketInventory') {
             $id = $command['Id'];
-            $uri = $request->getUri();
+            $uri = $request->getUrl();
             $query = $uri->getQuery();
-            $uri = $uri->withQuery($query . "&Id=".$id);
-            return $request->withUri($uri);
+            $uri->setQuery(OssUtil::filterQueryAndFragment($query . "&Id=" . $id));
+            return $request->setUrl($uri);
         }
         return $request;
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
     }
 
 }

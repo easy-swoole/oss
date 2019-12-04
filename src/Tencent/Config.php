@@ -7,7 +7,7 @@ use EasySwoole\Spl\SplBean;
 class Config extends SplBean
 {
     protected $schema = 'http';//http
-    protected $endpoint = null;//节点
+    protected $endpoint = 'myqcloud.com';//节点
     protected $region = '';//地区
     protected $appId=null;//appid
     protected $secretId="";//secretId

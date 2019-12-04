@@ -1,12 +1,14 @@
 <?php
 
-namespace EasySwoole\Oss\Tencent\Tests;
+namespace EasySwoole\Oss\Tests\Tencent;
 
-use EasySwoole\Oss\Tencent\Client;
+//use EasySwoole\Oss\Tencent\Client;
 use EasySwoole\Oss\Tencent\Config;
 use EasySwoole\Oss\Tencent\Exception\ServiceResponseException;
 use EasySwoole\Oss\Tencent\Http\HttpClient;
+use EasySwoole\Oss\Tencent\OssClient;
 use PHPUnit\Framework\TestCase;
+use Qcloud\Cos\Client;
 
 class COSTest extends TestCase
 {
@@ -24,36 +26,37 @@ class COSTest extends TestCase
 
     protected function setUp()
     {
-//        $config = new Config([
-//            'appId'     => TX_APP_ID,
-//            'secretId'  => TX_SECRETID,
-//            'secretKey' => TX_SECRETKEY,
-//            'region'    => TX_REGION,
-//            'bucket'    => TX_BUCKET,
-//        ]);
-//
-//        $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
-//        try {
+        $config = new Config([
+            'appId'     => TX_APP_ID,
+            'secretId'  => TX_SECRETID,
+            'secretKey' => TX_SECRETKEY,
+            'region'    => TX_REGION,
+            'bucket'    => TX_BUCKET,
+        ]);
+
+        $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
+        try {
 //            $this->cosClient->createBucket(['Bucket' => TX_BUCKET]);
-//        } catch (\Exception $e) {
-//        }
+        } catch (\Exception $e) {
+
+        }
 
         $this->bucket = TX_BUCKET;
         $this->region = TX_REGION;
-        $this->bucket2 = "tmp".$this->bucket;
-
-        $this->client = new Client([
-            'region'      => $this->region,
-            'credentials' => [
-                'secretId'  => TX_SECRETID,
-                'secretKey' => TX_SECRETKEY
+        $this->bucket2 = "tmp" . $this->bucket;
+        $this->client = new \Qcloud\Cos\Client(
+            [
+                'region'      => $this->region,
+                'credentials' => [
+                    'appId'     => TX_APP_ID,
+                    'secretId'  => TX_SECRETID,
+                    'secretKey' => TX_SECRETKEY
+                ]
             ]
-        ]);
+        );
         try {
-           $data =  $this->client->createBucket(['Bucket' => $this->bucket]);
-           var_dump($data);
+//            $this->client->createBucket(['Bucket' => $this->bucket]);
         } catch (\Exception $e) {
-            var_dump((string)$e);
         }
 
     }
@@ -89,8 +92,11 @@ class COSTest extends TestCase
     public function testCreateExistingBucket()
     {
         try {
-//            $this->cosClient->createBucket(['Bucket' => $this->bucket]);
+            $data = $this->cosClient->createBucket(['Bucket' => $this->bucket]);
+//           $data =  $this->client->createBucket(['Bucket' => $this->bucket]);
+//           var_dump($data);
         } catch (ServiceResponseException $e) {
+//            var_dump((string)$e);
             $this->assertTrue($e->getExceptionCode() === 'BucketAlreadyOwnedByYou' && $e->getStatusCode() === 409);
         }
     }
@@ -106,21 +112,25 @@ class COSTest extends TestCase
             'cn-north', 'ap-beijing-1',
             'cn-south-2', 'ap-guangzhou-2',
             'cn-southwest', 'ap-chengdu',
-            'sg', 'ap-singapore',
-            'tj', 'ap-beijing-1',
-            'bj', 'ap-beijing',
-            'sh', 'ap-shanghai',
-            'gz', 'ap-guangzhou',
-            'cd', 'ap-chengdu',
-            'sgp', 'ap-singapore');
+            'sg'  => 'ap-singapore',
+            'tj'  => 'ap-beijing-1',
+            'bj'  => 'ap-beijing',
+            'sh'  => 'ap-shanghai',
+            'gz'  => 'ap-guangzhou',
+            'cd'  => 'ap-chengdu',
+            'sgp' => 'ap-singapore');
         foreach ($regionlist as $region) {
             try {
+                $config = new Config([
+                    'appId'     => TX_APP_ID,
+                    'secretId'  => TX_SECRETID,
+                    'secretKey' => TX_SECRETKEY,
+                    'region'    => $region,
+                    'bucket'    => $this->bucket,
+                ]);
 
-                $this->cosClient = new Client(array('region'      => $region,
-                                                    'credentials' => array(
-                                                        'appId'     => getenv('COS_APPID'),
-                                                        'secretId'  => getenv('COS_KEY'),
-                                                        'secretKey' => getenv('COS_SECRET'))));
+                $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
+
                 $this->cosClient->createBucket(['Bucket' => $this->bucket]);
             } catch (ServiceResponseException $e) {
                 $this->assertEquals([$e->getStatusCode()], [409]);
@@ -137,16 +147,21 @@ class COSTest extends TestCase
         $regionlist = array('cn-east-2', 'ap-shanghai-3');
         foreach ($regionlist as $region) {
             try {
-                $this->cosClient = new Client(array('region'      => $region,
-                                                    'credentials' => array(
-                                                        'appId'     => getenv('COS_APPID'),
-                                                        'secretId'  => getenv('COS_KEY'),
-                                                        'secretKey' => getenv('COS_SECRET'))));
+
+                $config = new Config([
+                    'appId'     => TX_APP_ID,
+                    'secretId'  => TX_SECRETID,
+                    'secretKey' => TX_SECRETKEY,
+                    'region'    => $region,
+                    'bucket'    => $this->bucket,
+                ]);
+
+                $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
+
                 $this->cosClient->createBucket(['Bucket' => $this->bucket]);
             } catch (ServiceResponseException $e) {
-                $this->assertFalse(TRUE);
-            } catch (\GuzzleHttp\Exception\ConnectException $e) {
-                $this->assertTrue(TRUE);
+                $this->assertEquals(-1,$e->getStatusCode());
+                $this->assertEquals('DNS Lookup resolve failed',$e->getResponse()->getErrMsg());
             }
         }
     }
@@ -158,7 +173,9 @@ class COSTest extends TestCase
     public function testGetService()
     {
         try {
-            $this->cosClient->ListBuckets();
+            $data = $this->cosClient->ListBuckets();
+//            $data = $this->client->ListBuckets();
+//            var_dump($data);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);

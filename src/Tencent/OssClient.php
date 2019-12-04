@@ -8,47 +8,10 @@ use EasySwoole\Oss\Tencent\Exception\OssException;
 class OssClient extends Http\HttpClient
 {
 
-    public function commandToRequestTransformer(CommandInterface $command)
-    {
-        $action = $command->GetName();
-        $opreation = $this->api[$action];
-        $transformer = new CosTransformer($this->cosConfig, $opreation);
-        $seri = new Serializer($this->desc);
-        $request = $seri($command);
-        $request = $transformer->bucketStyleTransformer($command, $request);
-        $request = $transformer->uploadBodyTransformer($command, $request);
-        $request = $transformer->md5Transformer($command, $request);
-        $request = $transformer->specialParamTransformer($command, $request);
-        return $request;
-    }
-
-    public function responseToResultTransformer(ResponseInterface $response, RequestInterface $request, CommandInterface $command)
-    {
-        $action = $command->getName();
-        if ($action == "GetObject") {
-            if (isset($command['SaveAs'])) {
-                $fp = fopen($command['SaveAs'], "wb");
-                fwrite($fp, $response->getBody());
-                fclose($fp);
-            }
-        }
-        $deseri = new Deserializer($this->desc, true);
-        $response = $deseri($response, $request, $command);
-        if ($command['Key'] != null && $response['Key'] == null) {
-            $response['Key'] = $command['Key'];
-        }
-        if ($command['Bucket'] != null && $response['Bucket'] == null) {
-            $response['Bucket'] = $command['Bucket'];
-        }
-        $response['Location'] = $request->getUri()->getHost() . $request->getUri()->getPath();
-
-        return $response;
-    }
-
     public function __call($method, array $args)
     {
         try {
-            parent::__call(ucfirst($method), $args);
+            return parent::__call(ucfirst($method), $args);
         } catch (OssException $e) {
             $previous = $e->getPrevious();
             if ($previous !== null) {

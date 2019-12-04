@@ -206,11 +206,12 @@ class COSTest extends TestCase
         try {
             $this->cosClient->createBucket(
                 array(
-                    'Bucket' => $this->bucket2,
+                    'Bucket' => "tmp" . TX_BUCKET,
                     'ACL'    => 'private'
                 ));
             sleep(COSTest::SYNC_TIME);
-            TestHelper::nuke($this->bucket2);
+            TestHelper::nuke("tmp" . TX_BUCKET);
+            $this->assertTrue(TRUE);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);

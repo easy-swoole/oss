@@ -14,7 +14,7 @@ use EasySwoole\HttpClient\Bean\Url;
 use EasySwoole\Oss\Tencent\Config;
 use EasySwoole\Oss\Tencent\CosTransformer;
 use EasySwoole\Oss\Tencent\Exception\OssException;
-use EasySwoole\Oss\Tencent\Result;
+use EasySwoole\Oss\Tencent\Http\Result;
 use EasySwoole\Oss\Tencent\Service;
 use EasySwoole\Oss\Tencent\Signature;
 use phpDocumentor\Reflection\DocBlock\Serializer;
@@ -104,10 +104,10 @@ class HttpClient extends \EasySwoole\HttpClient\HttpClient
         $jsonData = json_encode($xmlBody);
         $body = json_decode($jsonData, true);
         if ($response->getStatusCode() !== 200) {
-            $exception = new OssException();
+            $exception = new OssException($body['Message']);
             $exception->setExceptionCode($body['Code']);
             $exception->setResponse($response);
-            $exception->setExceptionType($body['Message']);
+            $exception->setExceptionType($body['Code']);
             $exception->setRequestId($body['RequestId']);
             throw  $exception;
         }

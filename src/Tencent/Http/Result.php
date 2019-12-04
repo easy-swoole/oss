@@ -6,12 +6,12 @@
  * Time: 11:44
  */
 
-namespace EasySwoole\Oss\Tencent;
+namespace EasySwoole\Oss\Tencent\Http;
 
 
 use EasySwoole\HttpClient\Bean\Response;
 
-class Result
+class Result implements \ArrayAccess
 {
     public $Location = 'service.cos.myqcloud.com/';
 
@@ -55,6 +55,27 @@ class Result
                 $this->$key = $propertyValue;
             }
         }
+    }
+
+    public function offsetExists($offset)
+    {
+        return isset($this->$offset);
+
+    }
+
+    public function offsetGet($offset)
+    {
+        return $this->$offset;
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        $this->$offset = $value;
+    }
+
+    public function offsetUnset($offset)
+    {
+        unset($this->$offset);
     }
 
 

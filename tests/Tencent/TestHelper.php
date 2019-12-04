@@ -1,18 +1,22 @@
 <?php
 
-namespace EasySwoole\Oss\Tencent\Tests;
+namespace EasySwoole\Oss\Tests\Tencent;
 
 use EasySwoole\Oss\Tencent\Client;
+use EasySwoole\Oss\Tencent\Config;
 
 class TestHelper {
 
     public static function nuke($bucket) {
         try {
-            $cosClient = new Client(array('region' => getenv('COS_REGION'),
-                        'credentials'=> array(
-                        'appId' => getenv('COS_APPID'),
-                        'secretId'    => getenv('COS_KEY'),
-                        'secretKey' => getenv('COS_SECRET'))));
+            $config = new Config([
+                'appId'     => TX_APP_ID,
+                'secretId'  => TX_SECRETID,
+                'secretKey' => TX_SECRETKEY,
+                'region'    => TX_REGION,
+            ]);
+
+            $cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => $bucket, 'bucket2' => "tmp" . TX_BUCKET]);
             $result = $cosClient->listObjects(array('Bucket' => $bucket));
             if (isset($result['Contents'])) {
                 foreach ($result['Contents'] as $content) {

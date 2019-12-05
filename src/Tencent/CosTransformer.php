@@ -33,6 +33,7 @@ class CosTransformer
 //        var_dump($operation);
         $httpMethod = $operation['httpMethod'];
 //        $request->setMethod($httpMethod);
+//        var_dump($operation);
         if ($action == 'ListBuckets') {
             $request->setUrl($this->config->getSchema() . "://service.cos.myqcloud.com/");
             $request->setMethod($httpMethod);
@@ -80,7 +81,7 @@ class CosTransformer
         if ($uri->getQuery() != $query && $uri->getQuery() != "") {
             $query = $uri->getQuery() . "&" . $request->getUrl()->getQuery();
         }
-
+//var_dump($httpMethod,$operation);
         $uri->setQuery(OssUtil::filterQueryAndFragment((string)$query));
         $request->setUrl($uri);
         $request->setMethod($httpMethod);
@@ -88,7 +89,7 @@ class CosTransformer
     }
 
     // format upload body
-    public function uploadBodyTransformer(Command $command, $request, $bodyParameter = 'Body', $sourceParameter = 'SourceFile')
+    public function uploadBodyTransformer(Command $command, HttpClient $request, $bodyParameter = 'Body', $sourceParameter = 'SourceFile')
     {
         $operation = $this->operation;
         if (!isset($operation['parameters']['Body'])) {
@@ -132,13 +133,13 @@ class CosTransformer
         $body = $request->getClient()->getBody();
         if ($body && strlen($body) > 0) {
             $md5 = base64_encode(md5($body, true));
-            return $request->setHeader('Content-MD5', $md5,false);
+            return $request->setHeader('Content-MD5', $md5, false);
         }
         return $request;
     }
 
     // count md5
-    public function specialParamTransformer(Command $command,HttpClient $request)
+    public function specialParamTransformer(Command $command, HttpClient $request)
     {
         $action = $command->getName();
         if ($action == 'PutBucketInventory') {

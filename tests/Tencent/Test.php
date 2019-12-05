@@ -22,6 +22,7 @@ class COSTest extends TestCase
      */
     private $client;
     private $bucket;
+    private $bucket2;
     private $region;
 
     protected function setUp()
@@ -34,7 +35,7 @@ class COSTest extends TestCase
             'bucket'    => TX_BUCKET,
         ]);
 
-        $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
+        $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config);
         try {
 //            $this->cosClient->createBucket(['Bucket' => TX_BUCKET]);
         } catch (\Exception $e) {
@@ -44,25 +45,28 @@ class COSTest extends TestCase
         $this->bucket = TX_BUCKET;
         $this->region = TX_REGION;
         $this->bucket2 = "tmp" . $this->bucket;
-        $this->client = new \Qcloud\Cos\Client(
-            [
-                'region'      => $this->region,
-                'credentials' => [
-                    'appId'     => TX_APP_ID,
-                    'secretId'  => TX_SECRETID,
-                    'secretKey' => TX_SECRETKEY
-                ]
-            ]
-        );
-        try {
+//        $this->client = new \Qcloud\Cos\Client(
+//            [
+//                'region'      => $this->region,
+//                'credentials' => [
+//                    'appId'     => TX_APP_ID,
+//                    'secretId'  => TX_SECRETID,
+//                    'secretKey' => TX_SECRETKEY
+//                ]
+//            ]
+//        );
+//        try {
 //            $this->client->createBucket(['Bucket' => $this->bucket]);
-        } catch (\Exception $e) {
-        }
+//        } catch (\Exception $e) {
+//        }
 
     }
 
     protected function tearDown()
     {
+//       $data =  $this->cosClient->deleteBucket(['Bucket' => $this->bucket2]);
+//       var_dump($data);
+
     }
 
     function generateRandomString($length = 10)
@@ -129,7 +133,7 @@ class COSTest extends TestCase
                     'bucket'    => $this->bucket,
                 ]);
 
-                $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
+                $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config);
 
                 $this->cosClient->createBucket(['Bucket' => $this->bucket]);
             } catch (ServiceResponseException $e) {
@@ -156,7 +160,7 @@ class COSTest extends TestCase
                     'bucket'    => $this->bucket,
                 ]);
 
-                $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => TX_BUCKET, 'bucket2' => "tmp" . TX_BUCKET]);
+                $this->cosClient = new \EasySwoole\Oss\Tencent\OssClient($config);
 
                 $this->cosClient->createBucket(['Bucket' => $this->bucket]);
             } catch (ServiceResponseException $e) {
@@ -271,13 +275,16 @@ class COSTest extends TestCase
     public function testPutBucketAclPrivate()
     {
         try {
+//            var_dump($this->bucket);
             $this->cosClient->PutBucketAcl(
                 array(
                     'Bucket' => $this->bucket,
                     'ACL'    => 'private'
                 )
             );
+
         } catch (ServiceResponseException $e) {
+//            var_dump($e->getResponse());
             print $e;
             $this->assertFalse(TRUE);
         }

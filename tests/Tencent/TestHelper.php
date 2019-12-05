@@ -14,9 +14,10 @@ class TestHelper {
                 'secretId'  => TX_SECRETID,
                 'secretKey' => TX_SECRETKEY,
                 'region'    => TX_REGION,
+                'bucket' => $bucket
             ]);
 
-            $cosClient = new \EasySwoole\Oss\Tencent\OssClient($config, ['bucket' => $bucket, 'bucket2' => "tmp" . TX_BUCKET]);
+            $cosClient = new \EasySwoole\Oss\Tencent\OssClient($config);
             $result = $cosClient->listObjects(array('Bucket' => $bucket));
             if (isset($result['Contents'])) {
                 foreach ($result['Contents'] as $content) {
@@ -37,7 +38,7 @@ class TestHelper {
                                 'Key' => $upload['Key'],
                                 'UploadId' => $upload['UploadId']));
                     } catch (\Exception $e) {
-                        print_r($e);
+//                        print_r($e);
                     }
                 }
             }        

@@ -20,40 +20,59 @@ $params = [
             ),
             'Permission' => 'FULL_CONTROL',
         ),
+        array(
+            'Grantee'    => array(
+                'DisplayName' => 'qcs::cam::uin/2779643970:uin/123312',
+                'ID'          => 'qcs::cam::uin/2779643970:uin/123312312',
+                'Type'        => 'group',
+            ),
+            'Permission' => 'FULL_CONTROL',
+        ),
     ),
     'Owner'  => array(
         'DisplayName' => 'qcs::cam::uin/2779643970:uin/2779643970',
         'ID'          => 'qcs::cam::uin/2779643970:uin/2779643970',
     )
 ];
-$op = $arr['parameters']['Grants'];
 $xml = new \XMLWriter();
 $xml->openUri("php://output");   // 输出到网页控制台
 
 $xml->startDocument('1.0', 'utf-8');
 $xml->startElement($arr['data']['xmlRoot']['name']);
-$xml->startElement('Owner');
-$xml->startElement('ID');
-$xml->text('qcs::cam::uin/100000000001:uin/100000000001');
-$xml->endElement();
 
-$xml->startElement('AccessControlList');
-$xml->startElement('Grant');
-$xml->startElement('Grantee');
-$xml->writeAttribute('xmlns:xsi','http://www.w3.org/2001/XMLSchema-instance');
-$xml->writeAttribute('xsi:type','CanonicalUser');
-$xml->startElement('ID');
-$xml->text('qcs::cam::uin/100000000001:uin/100000000002');
-$xml->endElement();
-//var_dump($params['Grants'], $arr['parameters']['Grants']);
-//xml($xml, $params['Grants'], $arr['parameters']['Grants']);
-
-$xml->endElement();
-$xml->endElement();
-$xml->endElement();
-$xml->endDocument();
+handelParam($xml,$params);
 
 echo $xml->outputMemory();
+
+
+function handelParam($xml,$params){
+    $opArr = getOperation();
+    foreach ($params as $key=>$param){
+        $op = $opArr['parameters'][$key];
+        if ($op['location']!='xml'){
+            continue;
+        }
+        $paramName = $op['sentAs']??$key;
+        if ($op['type']=='array'){
+            handelArray($xml,$param,$paramName,$op['items']);
+        }
+        break;
+    }
+}
+
+function handelArray(XMLWriter $xml,$paramName,$param,$op){
+    var_dump($param,$paramName,$op);
+    foreach ($param as $key=>$value){
+        $xml->startElement($paramName);
+
+    }
+
+}
+
+function handelObject(){
+
+}
+
 
 function xml(XMLWriter $xml, $data, $parameters)
 {
@@ -65,7 +84,7 @@ function xml(XMLWriter $xml, $data, $parameters)
                 if ($op['location'] != 'xml') {
                     continue;
                 }
-                var_dump($op);
+//                var_dump($op);
                 $va = isset($va[0]) ?? $va;
                 $elementName = $op['sentAs'] ?? $key;
                 $xml->startElement($elementName);

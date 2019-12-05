@@ -39,49 +39,74 @@ class RequestHandel
     function handel()
     {
         $args = $this->args;
+        $data = [];
         foreach ($args as $key => $arg) {
             $op = $this->operation['parameters'][$key];
-            if ($op===null){
+            if ($op === null) {
                 continue;
             }
-            $function = $this->defaultRequestLocations[$op['location']];
-            if ($function===null){
+            $location = $this->defaultRequestLocations[$op['location']];
+            if ($location === null) {
                 continue;
             }
-            $this->$function($op['sentAs'],$arg);
+
+            $data[$location][$op['sentAs'] ?? $key] = $this->$location($op, $arg);
+            break;
+        }
+    }
+
+    function body($op, $value)
+    {
+    }
+
+    function query($op, $value)
+    {
+    }
+
+    function header($op, $value)
+    {
+        return $value;
+    }
+
+    function json($op, $value)
+    {
+
+    }
+
+    function xml($op, $value)
+    {
+        var_dump($op, $value);
+        $xml = new \DOMDocument();
+//        $xml->
+
+        $this->handelXMLParams($xml,$op,$value);
+
+    }
+
+    function formParam($op, $value)
+    {
+    }
+
+    function multipart($op, $value)
+    {
+    }
+
+    function handelXMLParams($xml, $arr,$data)
+    {
+        foreach ($arr as $key =>$property){
+            $value = new \DOMDocument();
+            if ($property['type']=='object'){
+                $value->$key = $this->handelXMLParams($value,$property['properties'],$data);
+            }
+
+
+
+
+            $xml->$key = $value;
+
         }
 
 
     }
-
-    function body($name, $arg)
-    {
-    }
-
-    function query($name, $arg)
-    {
-    }
-
-    function header($name, $arg)
-    {
-        $this->request->setHeader($name,$arg,false);
-    }
-
-    function json($name, $arg)
-    {
-    }
-
-    function xml($name, $arg)
-    {
-    }
-
-    function formParam($name, $arg)
-    {
-    }
-
-    function multipart($name, $arg)
-    {
-    }
-
 
 }

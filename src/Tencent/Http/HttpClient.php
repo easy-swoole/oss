@@ -22,7 +22,9 @@ class HttpClient extends \EasySwoole\HttpClient\HttpClient
      */
     public function request()
     {
+//        var_dump($this->getUrl());
         $method = strtolower($this->getClient()->requestMethod);
+//        var_dump($method);
         $response = $this->$method();
         return $response;
     }

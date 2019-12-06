@@ -46,9 +46,7 @@ class CosTransformer
             $bucketName = $bucketName . '-' . $appId;
         }
         $command['Bucket'] = $bucketName;
-
         $uri = $operation['uri'];
-
         // Hoststyle is used by default
         // Pathstyle
         if ($this->config->getPathStyle() != true) {
@@ -70,21 +68,25 @@ class CosTransformer
 //        var_dump($host);
 
         $path = $this->config->getSchema() . '://' . $host . $uri;
-        $query = $request->getUrl()->getQuery();
 
         $info = parse_url($path);
         if (empty($info['scheme'])) {
             $info = parse_url('//' . $path); // 防止无scheme导致的host解析异常 默认作为http处理
         }
+//        var_dump($info);
         $uri = new Url($info);
-
-        if ($uri->getQuery() != $query && $uri->getQuery() != "") {
-            $query = $uri->getQuery() . "&" . $request->getUrl()->getQuery();
+        $query = $request->getUrl()->getQuery();
+        if ($uri->getQuery() != $query &&  $query!= "") {
+            $query = $uri->getQuery() . "&" . $query;
         }
-//var_dump($httpMethod,$operation);
+        $uri->setFullPath('/?acl');
         $uri->setQuery(OssUtil::filterQueryAndFragment((string)$query));
+//        $uri->setPath('/?acl');
+//        var_dump($uri);
         $request->setUrl($uri);
+//        var_dump($uri);
         $request->setMethod($httpMethod);
+//        var_dump($uri);
         return $request;
     }
 

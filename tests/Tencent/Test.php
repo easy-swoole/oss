@@ -12,7 +12,7 @@ use Qcloud\Cos\Client;
 
 class COSTest extends TestCase
 {
-    const SYNC_TIME = 5;
+    const SYNC_TIME = 2;
     /**
      * @var $cosClient HttpClient
      */
@@ -45,20 +45,20 @@ class COSTest extends TestCase
         $this->bucket = TX_BUCKET;
         $this->region = TX_REGION;
         $this->bucket2 = "tmp" . $this->bucket;
-//        $this->client = new \Qcloud\Cos\Client(
-//            [
-//                'region'      => $this->region,
-//                'credentials' => [
-//                    'appId'     => TX_APP_ID,
-//                    'secretId'  => TX_SECRETID,
-//                    'secretKey' => TX_SECRETKEY
-//                ]
-//            ]
-//        );
-//        try {
-//            $this->client->createBucket(['Bucket' => $this->bucket]);
-//        } catch (\Exception $e) {
-//        }
+        $this->client = new \Qcloud\Cos\Client(
+            [
+                'region'      => $this->region,
+                'credentials' => [
+                    'appId'     => TX_APP_ID,
+                    'secretId'  => TX_SECRETID,
+                    'secretKey' => TX_SECRETKEY
+                ]
+            ]
+        );
+        try {
+            $this->client->createBucket(['Bucket' => $this->bucket]);
+        } catch (\Exception $e) {
+        }
 
     }
 
@@ -464,13 +464,14 @@ class COSTest extends TestCase
     }
 
     /*
-     * put bucket acl，设置bucket账号权限，通过body方式授权
+       * todo
+   * put bucket acl，设置bucket账号权限，通过body方式授权
      * 200
      */
     public function testPutBucketAclByBody()
     {
         try {
-            $this->cosClient->PutBucketAcl(
+            $this->client->PutBucketAcl(
                 array(
                     'Bucket' => $this->bucket,
                     'Grants' => array(
@@ -490,13 +491,14 @@ class COSTest extends TestCase
                 )
             );
         } catch (ServiceResponseException $e) {
-            print $e;
+            var_dump($e->getResponse());
             $this->assertFalse(TRUE);
         }
     }
 
     /*
-     * put bucket acl，设置bucket账号权限，通过body方式授权给anyone
+       * todo
+   * put bucket acl，设置bucket账号权限，通过body方式授权给anyone
      * 200
      */
     public function testPutBucketAclByBodyToAnyone()
@@ -528,7 +530,8 @@ class COSTest extends TestCase
     }
 
     /*
-     * put bucket acl，bucket不存在
+       * todo
+   * put bucket acl，bucket不存在
      * NoSuchBucket
      * 404
      */
@@ -544,11 +547,13 @@ class COSTest extends TestCase
                 )
             );
         } catch (ServiceResponseException $e) {
+//            var_dump($e->getMessage());
             $this->assertTrue($e->getExceptionCode() === 'NoSuchBucket' && $e->getStatusCode() === 404);
         }
     }
 
     /*
+     * todo
      * put bucket acl，覆盖设置
      * x200
      */
@@ -597,7 +602,7 @@ class COSTest extends TestCase
             $this->cosClient->HeadBucket(array(
                 'Bucket' => $this->bucket2));
         } catch (ServiceResponseException $e) {
-            $this->assertTrue($e->getExceptionCode() === 'NoSuchBucket' && $e->getStatusCode() === 404);
+            $this->assertTrue( $e->getStatusCode() === 404);
         }
     }
 
@@ -638,6 +643,7 @@ class COSTest extends TestCase
 
 
     /*
+     * todo
      * put bucket cors，cors规则包含多条
      * 200
      */
@@ -675,6 +681,7 @@ class COSTest extends TestCase
 
 
     /*
+     * todo
      * 正常get bucket cors
      * 200
      */
@@ -734,6 +741,7 @@ class COSTest extends TestCase
     }
 
     /*
+     * todo
      * 正常get bucket lifecycle
      * 200
      */
@@ -780,6 +788,7 @@ class COSTest extends TestCase
     }
 
     /*
+     * todo
      * 正常delete bucket lifecycle
      * 200
      */

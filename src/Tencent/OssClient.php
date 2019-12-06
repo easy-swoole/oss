@@ -60,7 +60,6 @@ class OssClient
         $requestHandel = new RequestHandel($request,$operation,$command->data);
         $requestHandel->handel();
 
-//        var_dump($operation);
         $transformer = new CosTransformer($this->cosConfig, $operation);
         $transformer->bucketStyleTransformer($command, $request);
         $transformer->uploadBodyTransformer($command, $request);
@@ -105,8 +104,10 @@ class OssClient
 
         //请求数据生成加密
         $this->signature->signRequest($this->request);
-//        var_dump($this->request);
+//        var_dump($this->request->getUrl());
+//        $this->request->setHeader('a',1);
         $response = $this->request->request();
+//        var_dump($response);
         $this->checkResponse($response);
         return $this->responseToResultTransformer($response, $name);
     }

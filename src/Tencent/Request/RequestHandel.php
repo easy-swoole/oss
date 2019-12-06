@@ -20,93 +20,70 @@ class RequestHandel
     protected $operation;
     protected $args;
     protected $defaultRequestLocations = [
-        'body'      => 'body',
-        'query'     => 'query',
-        'header'    => 'header',
-        'json'      => 'json',
-        'xml'       => 'xml',
-        'formParam' => 'formParam',
-        'multipart' => 'multipart',
+        'body'      => 'bodyHandel',
+        'query'     => 'queryHandel',
+        'header'    => 'headerHandel',
+        'json'      => 'jsonHandel',
+        'xml'       => 'xmlHandel',
+        'formParam' => 'formParamHandel',
+        'multipart' => 'multipartHandel',
     ];
+
+    protected $bodyHandel;
+    protected $queryHandel;
+    protected $headerHandel;
+    protected $jsonHandel;
+    protected $xmlHandel;
+    protected $formParamHandel;
+    protected $multipartHandel;
 
     public function __construct($request, $operation, $args)
     {
         $this->request = $request;
         $this->operation = $operation;
         $this->args = $args;
+
+        $this->xmlHandel = new XmlHandel($request,$this->operation, $this->args);
+        $this->headerHandel = new HeaderHandel($request, $this->operation, $this->args);
+//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
+//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
+//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
+//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
+
     }
 
     function handel()
     {
         $args = $this->args;
+        $opArr = $this->getOperation();
         $data = [];
         foreach ($args as $key => $arg) {
             $op = $this->operation['parameters'][$key];
             if ($op === null) {
                 continue;
             }
-            $location = $this->defaultRequestLocations[$op['location']];
-            if ($location === null) {
+            $handelClass = $this->defaultRequestLocations[$op['location']];
+            if ($handelClass === null) {
                 continue;
             }
-
-            $data[$location][$op['sentAs'] ?? $key] = $this->$location($op, $arg);
-            break;
-        }
-    }
-
-    function body($op, $value)
-    {
-    }
-
-    function query($op, $value)
-    {
-    }
-
-    function header($op, $value)
-    {
-        return $value;
-    }
-
-    function json($op, $value)
-    {
-
-    }
-
-    function xml($op, $value)
-    {
-        var_dump($op, $value);
-        $xml = new \DOMDocument();
-//        $xml->
-
-        $this->handelXMLParams($xml,$op,$value);
-
-    }
-
-    function formParam($op, $value)
-    {
-    }
-
-    function multipart($op, $value)
-    {
-    }
-
-    function handelXMLParams($xml, $arr,$data)
-    {
-        foreach ($arr as $key =>$property){
-            $value = new \DOMDocument();
-            if ($property['type']=='object'){
-                $value->$key = $this->handelXMLParams($value,$property['properties'],$data);
-            }
-
-
-
-
-            $xml->$key = $value;
-
+            $this->$handelClass->handelParam($key, $arg, $op);
         }
 
+        $xmlData = $this->xmlHandel->getXmlData();
+//        $this->request->setXMLHttpRequest();
+        if ($xmlData){
+            $this->request->getClient()->setData($xmlData);
+        }
+//        var_dump($xmlData);
 
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOperation()
+    {
+        return $this->operation;
     }
 
 }

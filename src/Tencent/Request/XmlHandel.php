@@ -27,7 +27,7 @@ class XmlHandel
     protected $params;
     protected $isXml = false;
 
-    function __construct($request,$operation, $params)
+    function __construct($request, $operation, $params)
     {
         $this->operation = $operation;
         $this->params = $params;
@@ -35,9 +35,9 @@ class XmlHandel
 
         $opArr = $this->getOperation();
         $this->xml = $xml = new \XMLWriter();
-
         $xml->openMemory();
-        if ($opArr['data']['xmlRoot']['name']){
+        $xml->startDocument('1.0', 'utf-8');
+        if ($opArr['data']['xmlRoot']['name']) {
             $xml->startElement($opArr['data']['xmlRoot']['name']);
         }
     }
@@ -53,12 +53,12 @@ class XmlHandel
 
     function getXmlData()
     {
-        if ($this->isXml==true){
+        if ($this->isXml == true) {
             $xml = $this->xml;
             $xml->endElement();
             $this->xmlData = $this->xml->outputMemory();
             return $this->xmlData;
-        }else{
+        } else {
             return null;
         }
     }
@@ -66,8 +66,9 @@ class XmlHandel
 
     function handelParam($key, $param, $op)
     {
+//        var_dump($op, $key, $param);
         $this->isXml = true;
-        $this->request->setHeader('Content-Type','application/xml',false);
+        $this->request->setHeader('Content-Type', 'application/xml', false);
         $this->handelXmlElement($op['type'], $key, $param, $op);
     }
 
@@ -101,7 +102,7 @@ class XmlHandel
         //先遍历属性值
         foreach ($params as $key => $value) {
             $keyName = $op[$key]['sentAs'] ?? $key;
-            if (empty($op[$key]['data'])) {
+            if (empty($op[$key]['data']['xmlAttribute'])) {
                 continue;
             }
             $this->handelXmlElement($op[$key]['type'], $keyName, $value, $op[$key]);
@@ -109,7 +110,7 @@ class XmlHandel
         //再遍历正常属性
         foreach ($params as $key => $value) {
             $keyName = $op[$key]['sentAs'] ?? $key;
-            if (!empty($op[$key]['data'])) {
+            if (!empty($op[$key]['data']['xmlAttribute'])) {
                 continue;
             }
             $this->handelXmlElement($op[$key]['type'], $keyName, $value, $op[$key]);
@@ -127,9 +128,6 @@ class XmlHandel
     {
         $xml = $this->xml;
         if ($op['data']) {
-            if ($op['data']['xmlNamespace']) {
-                $xml->writeAttribute('xmlns:xsi', $op['data']['xmlNamespace']);
-            }
             if ($op['data']['xmlAttribute']) {
                 $xml->writeAttribute($op['sentAs'] ?? $keyName, $value);
             }
@@ -155,13 +153,24 @@ class XmlHandel
         $xml = $this->xml;
         if ($type == 'object') {
             $xml->startElement($op['name'] ?? $keyName);
+            if ($op['data']['xmlNamespace']) {
+                $xml->writeAttribute('xmlns:xsi', $op['data']['xmlNamespace']);
+            }
             $this->handelObject($keyName, $value, $op['properties']);
             $xml->endElement();
         } elseif ($type == 'array') {
-            $xml->startElement($op['sentAs'] ?? $keyName);
+//            var_dump($op);
+            if ($op['sentAs']){
+                $xml->startElement($op['sentAs']);
+            }
+            if ($op['data']['xmlNamespace']) {
+                $xml->writeAttribute('xmlns:xsi', $op['data']['xmlNamespace']);
+            }
             $this->handelArray($keyName, $value, $op['items']);
-            $xml->endElement();
-        } elseif ($type == 'string') {
+            if ($op['sentAs']){
+                $xml->endElement();
+            }
+        } elseif ($type == 'string' || $type == 'numeric') {
             $this->handelString($keyName, $value, $op);
         }
     }

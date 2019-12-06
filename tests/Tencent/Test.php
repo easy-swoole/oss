@@ -711,11 +711,11 @@ class COSTest extends TestCase
                     ),
                 )
             );
-            $this->cosClient->getBucketCors(
-                array(
-                    'Bucket' => $this->bucket
-                )
-            );
+//            $this->cosClient->getBucketCors(
+//                array(
+//                    'Bucket' => $this->bucket
+//                )
+//            );
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);
@@ -748,7 +748,7 @@ class COSTest extends TestCase
     public function testGetBucketLifecycle()
     {
         try {
-            $result = $this->cosClient->putBucketLifecycle(
+            $result = $this->client->putBucketLifecycle(
                 array(
                     'Bucket' => $this->bucket,
                     'Rules'  => array(
@@ -778,9 +778,9 @@ class COSTest extends TestCase
                     )
                 )
             );
-            $result = $this->cosClient->getBucketLifecycle(array(
-                'Bucket' => $this->bucket,
-            ));
+//            $result = $this->cosClient->getBucketLifecycle(array(
+//                'Bucket' => $this->bucket,
+//            ));
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);

@@ -132,7 +132,7 @@ class CosTransformer
     // count md5
     private function addMd5(HttpClient $request)
     {
-        $body = $request->getClient()->getBody();
+        $body = $request->getRequestBody();
         if ($body && strlen($body) > 0) {
             $md5 = base64_encode(md5($body, true));
             return $request->setHeader('Content-MD5', $md5, false);

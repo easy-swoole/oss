@@ -12,6 +12,10 @@ use EasySwoole\HttpClient\Bean\Url;
 
 class HttpClient extends \EasySwoole\HttpClient\HttpClient
 {
+    /**
+     * @var $requestBody //自行记录的发送body
+     */
+    protected $requestBody;
 
     /**
      * 发起请求
@@ -46,5 +50,22 @@ class HttpClient extends \EasySwoole\HttpClient\HttpClient
             return $this;
         }
     }
+
+    /**
+     * @return mixed
+     */
+    public function getRequestBody()
+    {
+        return $this->requestBody;
+    }
+
+    /**
+     * @param mixed $requestBody
+     */
+    public function setRequestBody($requestBody): void
+    {
+        $this->requestBody = $requestBody;
+    }
+
 
 }

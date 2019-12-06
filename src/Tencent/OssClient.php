@@ -107,7 +107,7 @@ class OssClient
 //        var_dump($this->request->getUrl());
 //        $this->request->setHeader('a',1);
         $response = $this->request->request();
-//        var_dump($response);
+        var_dump($response);
         $this->checkResponse($response);
         return $this->responseToResultTransformer($response, $name);
     }

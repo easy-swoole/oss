@@ -65,6 +65,9 @@ class OssClient
         $transformer->uploadBodyTransformer($command, $request);
         $transformer->md5Transformer($command, $request);
         $request = $transformer->specialParamTransformer($command, $request);
+        //这里进行setBody
+        $request->getClient()->setData($this->request->getRequestBody());
+
         return $request;
     }
 
@@ -107,7 +110,6 @@ class OssClient
 //        var_dump($this->request->getUrl());
 //        $this->request->setHeader('a',1);
         $response = $this->request->request();
-        var_dump($response);
         $this->checkResponse($response);
         return $this->responseToResultTransformer($response, $name);
     }

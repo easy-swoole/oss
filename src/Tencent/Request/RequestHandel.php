@@ -70,14 +70,11 @@ class RequestHandel
         }
 
         $xmlData = $this->xmlHandel->getXmlData();
-        var_dump($xmlData);
 //        $this->request->setXMLHttpRequest();
         if ($xmlData){
-            $this->request->getClient()->setData($xmlData);
             $this->request->setRequestBody($xmlData);
         }
 //        var_dump($xmlData);
-
     }
 
     /**

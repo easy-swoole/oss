@@ -643,7 +643,6 @@ class COSTest extends TestCase
 
 
     /*
-     * todo
      * put bucket cors，cors规则包含多条
      * 200
      */
@@ -681,7 +680,6 @@ class COSTest extends TestCase
 
 
     /*
-     * todo
      * 正常get bucket cors
      * 200
      */
@@ -741,7 +739,6 @@ class COSTest extends TestCase
     }
 
     /*
-     * todo
      * 正常get bucket lifecycle
      * 200
      */

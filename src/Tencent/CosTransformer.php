@@ -65,7 +65,6 @@ class CosTransformer
                 $host = $this->config->getIp() . ":" . $this->config->getPort();
             }
         }
-//        var_dump($host);
 
         $path = $this->config->getSchema() . '://' . $host . $uri;
 
@@ -73,16 +72,13 @@ class CosTransformer
         if (empty($info['scheme'])) {
             $info = parse_url('//' . $path); // 防止无scheme导致的host解析异常 默认作为http处理
         }
-//        var_dump($info);
         $uri = new Url($info);
         $query = $request->getUrl()->getQuery();
-        if ($uri->getQuery() != $query &&  $query!= "") {
+        if ($uri->getQuery() != $query &&  $uri->getQuery()!= "") {
             $query = $uri->getQuery() . "&" . $query;
         }
-        $uri->setFullPath('/?acl');
         $uri->setQuery(OssUtil::filterQueryAndFragment((string)$query));
-//        $uri->setPath('/?acl');
-//        var_dump($uri);
+
         $request->setUrl($uri);
 //        var_dump($uri);
         $request->setMethod($httpMethod);

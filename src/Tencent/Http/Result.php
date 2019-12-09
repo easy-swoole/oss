@@ -15,6 +15,7 @@ class Result implements \ArrayAccess
 {
     public $Location = 'service.cos.myqcloud.com/';
 
+    protected $xmlData=null;
 
     function __construct(Response $response, array $operationsResult)
     {
@@ -36,31 +37,48 @@ class Result implements \ArrayAccess
 
     function addProperties(Response $response, $properties)
     {
-        $xmlBody = simplexml_load_string($response->getBody());
-        $jsonData = json_encode($xmlBody);
-        $body = json_decode($jsonData, true);
         foreach ($properties as $key => $property) {
             $propertyValue = [];
             switch ($property['location']) {
                 case "xml":
-                    $propertyValue = $body[$key];
+                    $propertyValue = $this->getXmlData($response,$key);
                     break;
                 case "header":
                     $propertyValue = $response->getHeaders()[$property['sentAs']];
                     break;
+                case "body":
+                    if ($property['instanceOf']){
+                        $propertyValue = new $property['instanceOf']($response->getBody());
+                    }else{
+                        $propertyValue = $response->getBody();
+                    }
+
+                    break;
             }
             if ($property['type'] == 'array') {
                 $this->$key[] = $propertyValue;
+            }elseif ($property['type'] == 'object'){
+                $this->$key = $propertyValue;
             } else {
                 $this->$key = $propertyValue;
             }
         }
     }
 
+    protected function getXmlData($response,$key){
+        if ($this->xmlData===null){
+            $xmlBody = simplexml_load_string($response->getBody());
+            $jsonData = json_encode($xmlBody);
+            $body = json_decode($jsonData, true);
+            $this->xmlData = $body;
+        }
+        return $this->xmlData[$key];
+    }
+
+
     public function offsetExists($offset)
     {
         return isset($this->$offset);
-
     }
 
     public function offsetGet($offset)

@@ -14,7 +14,7 @@ class COSTest extends TestCase
 {
     const SYNC_TIME = 2;
     /**
-     * @var $cosClient HttpClient
+     * @var $cosClient OssClient
      */
     private $cosClient;
     /**
@@ -1033,6 +1033,7 @@ class COSTest extends TestCase
                     'ServerSideEncryption' => 'AES256'
                 )
             );
+            $this->assertTrue(true);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);

@@ -29,6 +29,9 @@ class RequestHandel
         'multipart' => 'multipartHandel',
     ];
 
+    /**
+     * @var BodyHandel $bodyHandel
+     */
     protected $bodyHandel;
     protected $queryHandel;
     protected $headerHandel;
@@ -45,10 +48,7 @@ class RequestHandel
 
         $this->xmlHandel = new XmlHandel($request,$this->operation, $this->args);
         $this->headerHandel = new HeaderHandel($request, $this->operation, $this->args);
-//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
-//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
-//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
-//        $this->xmlHandel = new XmlHandel($this->operation, $this->args);
+        $this->bodyHandel = new BodyHandel($request,$this->operation, $this->args);
 
     }
 
@@ -73,6 +73,12 @@ class RequestHandel
         if ($xmlData){
             $this->request->setRequestBody($xmlData);
         }
+        $bodyData = $this->bodyHandel->getData();
+        if ($bodyData){
+            $this->request->setRequestBody($bodyData);
+        }
+
+
     }
 
     /**

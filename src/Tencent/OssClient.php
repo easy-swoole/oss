@@ -15,6 +15,7 @@ use EasySwoole\Oss\Tencent\Http\Result;
 use EasySwoole\Oss\Tencent\Request\RequestHandel;
 use EasySwoole\Oss\Tencent\Service;
 use EasySwoole\Oss\Tencent\Signature;
+use EasySwoole\Spl\SplStream;
 use phpDocumentor\Reflection\DocBlock\Serializer;
 
 class OssClient
@@ -116,10 +117,10 @@ class OssClient
 
     function checkResponse(Response $response)
     {
-        $xmlBody = simplexml_load_string($response->getBody());
-        $jsonData = json_encode($xmlBody);
-        $body = json_decode($jsonData, true);
         if ((int)(intval($response->getStatusCode()) / 100) != 2) {
+            $xmlBody = simplexml_load_string($response->getBody());
+            $jsonData = json_encode($xmlBody);
+            $body = json_decode($jsonData, true);
             $exception = new OssException($body['Message']);
             $exception->setExceptionCode($body['Code']);
             $exception->setResponse($response);
@@ -164,7 +165,7 @@ class OssClient
 
     public function upload($bucket, $key, $body, $options = array())
     {
-        $body = Psr7\stream_for($body);
+        $body = new SplStream($body);
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : MultipartUpload::MIN_PART_SIZE;
         if ($body->getSize() < $options['PartSize']) {
             $rt = $this->putObject(array(

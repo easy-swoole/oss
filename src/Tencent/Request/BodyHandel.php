@@ -60,10 +60,10 @@ class BodyHandel
     {
         $this->isData=true;
         if ($param instanceof SplStream){
-            $this->data = $param->getContents();
+            $this->data = $param->__toString();
         }else{
             $stream = new SplStream($param);
-            $this->data = $stream->getContents();
+            $this->data = $stream->__toString();
         }
     }
 

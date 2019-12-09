@@ -54,6 +54,7 @@ class HeaderHandel
 
     function handelParam($key, $param, $op)
     {
+        var_dump($param);
         $keyName = $op['sentAs']??$key;
         $this->request->setHeader($keyName,$param);
     }

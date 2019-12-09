@@ -74,7 +74,7 @@ class CosTransformer
         }
         $uri = new Url($info);
         $query = $request->getUrl()->getQuery();
-        if ($uri->getQuery() != $query &&  $uri->getQuery()!= "") {
+        if ($uri->getQuery() != $query && $uri->getQuery() != "") {
             $query = $uri->getQuery() . "&" . $query;
         }
         $uri->setQuery(OssUtil::filterQueryAndFragment((string)$query));
@@ -132,6 +132,16 @@ class CosTransformer
         if ($body && strlen($body) > 0) {
             $md5 = base64_encode(md5($body, true));
             return $request->setHeader('Content-MD5', $md5, false);
+        }
+        return $request;
+    }
+
+    // count md5
+    public function addContentLength(HttpClient $request)
+    {
+        $body = $request->getRequestBody();
+        if (($bodyLength = strlen($body)) >= 0) {
+            return $request->setHeader('Content-Length', $bodyLength, false);
         }
         return $request;
     }

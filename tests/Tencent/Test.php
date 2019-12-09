@@ -1055,6 +1055,7 @@ class COSTest extends TestCase
                     'Bucket' => $this->bucket, 'Key' => 'hello.txt', 'Body' => 'Hello World'
                 )
             );
+            $this->assertTrue(true);
         } catch (ServiceResponseException $e) {
             $this->assertTrue($e->getExceptionCode() === 'NoSuchBucket');
             $this->assertTrue($e->getStatusCode() === 404);
@@ -1069,7 +1070,8 @@ class COSTest extends TestCase
     public function testUploadSmallObject()
     {
         try {
-            $this->cosClient->upload($this->bucket, '你好.txt', 'Hello World');
+            $this->cosClient->upload($this->bucket, '你好.txt', 'Hello World 11111111111');
+            $this->assertTrue(true);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);
@@ -1084,6 +1086,7 @@ class COSTest extends TestCase
     {
         try {
             $this->cosClient->upload($this->bucket, '你好.txt', '');
+            $this->assertTrue(true);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);
@@ -1099,6 +1102,7 @@ class COSTest extends TestCase
         try {
             $this->cosClient->upload($this->bucket, '你好.txt', '1234124');
             $this->cosClient->upload($this->bucket, '你好.txt', '请二位qwe');
+            $this->assertTrue(true);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);
@@ -1119,6 +1123,7 @@ class COSTest extends TestCase
                 'Metadata' => array(
                     'lew' => str_repeat('a', 1 * 1024),
                 )));
+            $this->assertTrue(true);
         } catch (ServiceResponseException $e) {
             print $e;
             $this->assertFalse(TRUE);

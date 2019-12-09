@@ -65,6 +65,7 @@ class OssClient
         $transformer->bucketStyleTransformer($command, $request);
         $transformer->uploadBodyTransformer($command, $request);
         $transformer->md5Transformer($command, $request);
+        $transformer->addContentLength($request);
         $request = $transformer->specialParamTransformer($command, $request);
         //这里进行setBody
         $request->getClient()->setData($this->request->getRequestBody());
@@ -108,7 +109,7 @@ class OssClient
 
         //请求数据生成加密
         $this->signature->signRequest($this->request);
-//        var_dump($this->request->getUrl());
+//        var_dump($this->request);
 //        $this->request->setHeader('a',1);
         $response = $this->request->request();
         $this->checkResponse($response);

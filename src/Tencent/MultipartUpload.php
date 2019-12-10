@@ -3,6 +3,9 @@
 namespace EasySwoole\Oss\Tencent;
 
 use EasySwoole\Oss\Tencent\Exception\CosException;
+use EasySwoole\Oss\Tencent\Exception\OssException;
+use EasySwoole\Oss\Tencent\Exception\ServiceResponseException;
+use EasySwoole\Spl\SplStream;
 
 class MultipartUpload {
     /**
@@ -13,7 +16,13 @@ class MultipartUpload {
     const DEFAULT_PART_SIZE = 52428800;
     const MAX_PARTS     = 10000;
 
+    /**
+     * @var $client OssClient
+     */
     private $client;
+    /**
+     * @var $body SplStream
+     */
     private $body;
     private $options;
     private $partSize;
@@ -45,8 +54,9 @@ class MultipartUpload {
                         'Body' => $body,
                         'UploadId' => $uploadId,
                         'PartNumber' => $partNumber));
+
             if (md5($body) != substr($result['ETag'], 1, -1)){
-                throw new CosException("ETag check inconsistency");
+                throw new ServiceResponseException("ETag check inconsistency");
             }
             $part = array('PartNumber' => $partNumber, 'ETag' => $result['ETag']);
             array_push($parts, $part);
@@ -73,6 +83,9 @@ class MultipartUpload {
                 $parts = array();
         if (count($rt['Parts']) > 0) {
             foreach ($rt['Parts'] as $part) {
+                if (empty($part)){
+                    continue;
+                }
                 $parts[$part['PartNumber'] - 1] = array('PartNumber' => $part['PartNumber'], 'ETag' => $part['ETag']);
             }
         }
@@ -85,7 +98,7 @@ class MultipartUpload {
             if (array_key_exists($partNumber-1, $parts)){
 
                 if (md5($body) != substr($parts[$partNumber-1]['ETag'], 1, -1)){
-                    throw new CosException("ETag check inconsistency");
+                    throw new OssException("ETag check inconsistency");
                 }
                 continue;
             }

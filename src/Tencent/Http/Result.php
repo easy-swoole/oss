@@ -44,7 +44,7 @@ class Result implements \ArrayAccess
                     $propertyValue = $this->getXmlData($response,$key);
                     break;
                 case "header":
-                    $propertyValue = $response->getHeaders()[$property['sentAs']];
+                    $propertyValue = $response->getHeaders()[strtolower($property['sentAs']??$key)];
                     break;
                 case "body":
                     if ($property['instanceOf']){

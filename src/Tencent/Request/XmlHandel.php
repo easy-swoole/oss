@@ -152,14 +152,13 @@ class XmlHandel
     {
         $xml = $this->xml;
         if ($type == 'object') {
-            $xml->startElement($op['name'] ?? $keyName);
+            $xml->startElement($op['sentAs']??$op['name'] ?? $keyName);
             if ($op['data']['xmlNamespace']) {
                 $xml->writeAttribute('xmlns:xsi', $op['data']['xmlNamespace']);
             }
             $this->handelObject($keyName, $value, $op['properties']);
             $xml->endElement();
         } elseif ($type == 'array') {
-//            var_dump($op);
             if ($op['sentAs']){
                 $xml->startElement($op['sentAs']);
             }

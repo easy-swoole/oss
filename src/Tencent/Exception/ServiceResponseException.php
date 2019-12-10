@@ -134,14 +134,12 @@ class ServiceResponseException extends InvalidUrl
      */
     public function __toString()
     {
-//        var_dump($this->response);
         $message = get_class($this) . ': '
             . 'Cos Error Code: ' . $this->getExceptionCode() . ', '
             . 'Status Code: ' . $this->getStatusCode() . ', '
             . 'Cos Request ID: ' . $this->getRequestId() . ', '
             . 'Cos Error Type: ' . $this->getExceptionType() . ', '
             . 'Cos Error Message: ' . $this->getMessage();
-
         // Add the User-Agent if available
         $message .= ', ' . 'User-Agent: ' . $this->response->getRequestHeaders()['user-agent'];
 

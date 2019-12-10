@@ -2,15 +2,12 @@
 
 namespace EasySwoole\Oss\Tencent;
 
-use EasySwoole\Oss\Tencent\Exception\OssException;
+use EasySwoole\Oss\Tencent\Exception\ServiceResponseException;
 use EasySwoole\Oss\Tencent\Http\Command;
 use EasySwoole\Oss\Tencent\Http\HttpClient;
 
 
 use EasySwoole\HttpClient\Bean\Response;
-use EasySwoole\HttpClient\Bean\Url;
-use EasySwoole\Oss\Tencent\Config;
-use EasySwoole\Oss\Tencent\CosTransformer;
 use EasySwoole\Oss\Tencent\Http\Result;
 use EasySwoole\Oss\Tencent\Request\RequestHandel;
 use EasySwoole\Oss\Tencent\Service;
@@ -109,9 +106,12 @@ class OssClient
 
         //请求数据生成加密
         $this->signature->signRequest($this->request);
-//        var_dump($this->request);
 //        $this->request->setHeader('a',1);
+//        var_dump($name);
         $response = $this->request->request();
+        if ($name=='UploadPart'){
+//            var_dump($response);
+        }
         $this->checkResponse($response);
         return $this->responseToResultTransformer($response, $name);
     }
@@ -122,7 +122,7 @@ class OssClient
             $xmlBody = simplexml_load_string($response->getBody());
             $jsonData = json_encode($xmlBody);
             $body = json_decode($jsonData, true);
-            $exception = new OssException($body['Message']);
+            $exception = new ServiceResponseException($body['Message']);
             $exception->setExceptionCode($body['Code']);
             $exception->setResponse($response);
             $exception->setExceptionType($body['Code']);
@@ -145,7 +145,7 @@ class OssClient
 
 
 
-    private function createPresignedUrl(RequestInterface $request, $expires)
+    private function createPresignedUrl(HttpClient $request, $expires)
     {
         return $this->signature->createPresignedUrl($request, $expires);
     }
@@ -168,6 +168,7 @@ class OssClient
     {
         $body = new SplStream($body);
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : MultipartUpload::MIN_PART_SIZE;
+
         if ($body->getSize() < $options['PartSize']) {
             $rt = $this->putObject(array(
                     'Bucket' => $bucket,
@@ -187,7 +188,7 @@ class OssClient
 
     public function resumeUpload($bucket, $key, $body, $uploadId, $options = array())
     {
-        $body = Psr7\stream_for($body);
+        $body = new SplStream($body);
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : MultipartUpload::DEFAULT_PART_SIZE;
         $multipartUpload = new MultipartUpload($this, $body, array(
                 'Bucket'   => $bucket,
@@ -205,9 +206,9 @@ class OssClient
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : Copy::DEFAULT_PART_SIZE;
 
         // set copysource client
-        $sourceConfig = $this->rawCosConfig;
-        $sourceConfig['region'] = $copySource['Region'];
-        $cosSourceClient = new Client($sourceConfig);
+        $sourceConfig = $this->cosConfig;
+        $sourceConfig->setRegion($copySource['Region']);
+        $cosSourceClient = new OssClient($sourceConfig);
         $copySource['VersionId'] = isset($copySource['VersionId']) ? $copySource['VersionId'] : "";
         try {
             $rt = $cosSourceClient->headObject(

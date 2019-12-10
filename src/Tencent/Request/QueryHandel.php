@@ -10,8 +10,9 @@ namespace EasySwoole\Oss\Tencent\Request;
 
 
 use EasySwoole\Oss\Tencent\Http\HttpClient;
+use EasySwoole\Oss\Tencent\OssUtil;
 
-class HeaderHandel
+class QueryHandel
 {
     /**
      * @var $request HttpClient
@@ -54,16 +55,14 @@ class HeaderHandel
 
     function handelParam($key, $param, $op)
     {
-        $keyName = $op['sentAs']??$key;
-        //额外处理
-        if ($key=='Metadata'){
-            if (is_array($param)){
-                foreach ($param as $k=>$value){
-                    $this->request->setHeader($keyName,$value);
-                }
-            }
-        }else{
-            $this->request->setHeader($keyName,$param);
+        $keyName = $op['sentAs'] ?? $key;
+        $url = $this->request->getUrl();
+        if (empty($url->getQuery())) {
+            $queryStr = "$keyName=$param";
+        } else {
+            $queryStr = $url->getQuery()."&$keyName=$param";
         }
+        $url->setQuery(OssUtil::filterQueryAndFragment((string)$queryStr));
+        $this->request->setUrl($url);
     }
 }

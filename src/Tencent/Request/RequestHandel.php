@@ -49,6 +49,7 @@ class RequestHandel
         $this->xmlHandel = new XmlHandel($request,$this->operation, $this->args);
         $this->headerHandel = new HeaderHandel($request, $this->operation, $this->args);
         $this->bodyHandel = new BodyHandel($request,$this->operation, $this->args);
+        $this->queryHandel = new QueryHandel($request,$this->operation, $this->args);
 
     }
 

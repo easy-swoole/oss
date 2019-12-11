@@ -1989,7 +1989,7 @@ class OssClient
         $headers = new RequestHeaders($config);
         // 获得当次请求使用的hostname，如果是公共域名或者专有域名，bucket拼在前面构成三级域名
         $hostname = $this->generateHostname($options[OssConst::OSS_BUCKET]);
-        $headers = $headers->generateHeaders($options, $hostname);
+        $headers = $headers->generateHeaders($options, $hostname,$this);
         $this->setHttpClientHeaders($httpClient, $headers);
         //签名字符串
         $stringToSign = $signature->getStringToSign($signableQueryString, $options, $headers, $this->hostType);
@@ -2098,6 +2098,39 @@ class OssClient
     {
         $this->enableStsInUrl = $enable;
     }
+
+    /**
+     * @return bool
+     */
+    public function isEnableStsInUrl(): bool
+    {
+        return $this->enableStsInUrl;
+    }
+
+    /**
+     * @param bool $enableStsInUrl
+     */
+    public function setEnableStsInUrl(bool $enableStsInUrl): void
+    {
+        $this->enableStsInUrl = $enableStsInUrl;
+    }
+
+    /**
+     * @return null
+     */
+    public function getSecurityToken()
+    {
+        return $this->securityToken;
+    }
+
+    /**
+     * @param null $securityToken
+     */
+    public function setSecurityToken($securityToken): void
+    {
+        $this->securityToken = $securityToken;
+    }
+
 
     /**
      * @return boolean
@@ -2573,6 +2606,7 @@ class OssClient
             }
             $file->write($response->getBody());
         }
-
     }
+
+
 }

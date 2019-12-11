@@ -9,6 +9,7 @@
 namespace EasySwoole\Oss\AliYun\Http;
 
 use EasySwoole\Oss\AliYun\Config;
+use EasySwoole\Oss\AliYun\OssClient;
 use EasySwoole\Oss\AliYun\OssConst;
 
 /**
@@ -33,7 +34,7 @@ class RequestHeaders
         $this->config = $config;
     }
 
-    public function generateHeaders($options, $hostname)
+    public function generateHeaders($options, $hostname,OssClient $ossClient)
     {
         $headers = $this->headers;
 
@@ -52,8 +53,8 @@ class RequestHeaders
         }
 
         //添加stsSecurityToken
-        if ((!is_null($this->config->getSecurityToken())) && (!$this->config->isEnableStsInUrl())) {
-            $headers[OssConst::OSS_SECURITY_TOKEN] = $this->config->getSecurityToken();
+        if ((!is_null($ossClient->getSecurityToken())) && (!$ossClient->isEnableStsInUrl())) {
+            $headers[OssConst::OSS_SECURITY_TOKEN] = $ossClient->getSecurityToken();
         }
         //合并HTTP headers
         if (isset($options[OssConst::OSS_HEADERS])) {

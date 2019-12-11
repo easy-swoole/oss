@@ -2,7 +2,7 @@
 include "../../vendor/autoload.php";
 include "../../phpunit2.php";
 go(function (){
-
+//config配置
     $config = new \EasySwoole\Oss\Tencent\Config([
         'appId'     => TX_APP_ID,
         'secretId'  => TX_SECRETID,
@@ -10,18 +10,21 @@ go(function (){
         'region'    => TX_REGION,
         'bucket'    => TX_BUCKET,
     ]);
+    //new客户端
     $cosClient = new \EasySwoole\Oss\Tencent\OssClient($config);
 
-    $key = '你好.txt';
+    $key = '你好111.txt';
+    //生成一个文件数据
     $body = generateRandomString(2 * 1024  + 1023);
-    $md5 = base64_encode(md5($body, true));
+    //上传
     $cosClient->upload($bucket = TX_BUCKET,
         $key = $key,
         $body = $body,
-        $options = ['PartSize' => 1024 + 1]);
-
+        $options = ['PartSize' => 1024 + 1]
+    );
+    //获取文件内容
     $rt = $cosClient->getObject(['Bucket' => TX_BUCKET, 'Key' => $key]);
-    $download_md5 = base64_encode(md5($rt['Body'], true));
+    var_dump($rt['Body']->__toString());
 });
 
 

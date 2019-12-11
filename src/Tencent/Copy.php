@@ -22,7 +22,7 @@ class Copy
     private $copySource;
     private $options;
     private $partSize;
-    private $parts;
+    private $parts=[];
     private $size;
     private $commandList = [];
     private $requestList = [];
@@ -62,7 +62,6 @@ class Copy
                 'UploadId' => $uploadId,
                 'Parts'    => $this->parts)
         );
-
     }
 
     public function uploadParts($uploadId)
@@ -79,6 +78,7 @@ class Copy
                 }
                 $copySourcePath = $this->copySource['Bucket'] . '.cos.' . $this->copySource['Region'] .
                     ".myqcloud.com/" . $this->copySource['Key'] . "?versionId=" . $this->copySource['VersionId'];
+
                 $params = array(
                     'Bucket'          => $this->options['Bucket'],
                     'Key'             => $this->options['Key'],
@@ -103,17 +103,12 @@ class Copy
         };
         $csp = new \EasySwoole\Component\Csp();
 
-        $csp->add('t1',function (){
-            \co::sleep(0.1);
-            return 't1 result';
-        });
-        $csp->add('t2',function (){
-            \co::sleep(0.1);
-            return 't2 result';
-        });
-
         for ($i = 0; $i < $this->concurrency; $i++) {
-
+            $csp->add('t' . $i, function () use ($uploadId, $copyRequests) {
+                \co::sleep(0.1);
+                $copyRequests($uploadId);
+                return 't2 result';
+            });
         }
 
         [

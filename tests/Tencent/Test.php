@@ -56,7 +56,7 @@ class COSTest extends TestCase
             ]
         );
         try {
-            $this->client->createBucket(['Bucket' => $this->bucket]);
+            $this->client->createBucket(['Bucket' => $this->bucket2]);
         } catch (\Exception $e) {
         }
 
@@ -64,7 +64,7 @@ class COSTest extends TestCase
 
     protected function tearDown()
     {
-//       $data =  $this->cosClient->deleteBucket(['Bucket' => $this->bucket2]);
+       $data =  $this->cosClient->deleteBucket(['Bucket' => $this->bucket2]);
 //       var_dump($data);
 
     }
@@ -486,7 +486,7 @@ class COSTest extends TestCase
         try {
             $this->cosClient->PutBucketAcl(
                 array(
-                    'Bucket' => $this->bucket,
+                    'Bucket' => $this->bucket2,
                     'Grants' => array(
                         array(
                             'Grantee'    => array(
@@ -520,7 +520,7 @@ class COSTest extends TestCase
         try {
             $this->cosClient->PutBucketAcl(
                 array(
-                    'Bucket' => $this->bucket,
+                    'Bucket' => $this->bucket2,
                     'Grants' => array(
                         array(
                             'Grantee'    => array(

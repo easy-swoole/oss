@@ -99,7 +99,7 @@ class COSTest extends TestCase
 //           $data =  $this->client->createBucket(['Bucket' => $this->bucket2]);
 //           var_dump($data);
         } catch (ServiceResponseException $e) {
-//            var_dump((string)$e);
+            var_dump((string)$e);
             $this->assertTrue($e->getExceptionCode() === 'BucketAlreadyOwnedByYou' && $e->getStatusCode() === 409);
         }
     }

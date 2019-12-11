@@ -13,7 +13,7 @@ go(function (){
     //new客户端
     $cosClient = new \EasySwoole\Oss\Tencent\OssClient($config);
 
-    $key = '你好111.txt';
+    $key = '你好1331.txt';
     //生成一个文件数据
     $body = generateRandomString(2 * 1024  + 1023);
     //上传

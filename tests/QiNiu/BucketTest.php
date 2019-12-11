@@ -28,6 +28,7 @@ class BucketTest extends QiNiuBaseTestCase
     {
 
         list($list, $error) = $this->bucketManager->buckets();
+//        var_dump($error);
         $this->assertTrue(in_array($this->bucketName, $list));
         $this->assertNull($error);
 

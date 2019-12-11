@@ -75,21 +75,5 @@ class Config extends SplBean
         $this->isCName = $isCName;
     }
 
-    /**
-     * @return null
-     */
-    public function getSecurityToken()
-    {
-        return $this->securityToken;
-    }
-
-    /**
-     * @param null $securityToken
-     */
-    public function setSecurityToken($securityToken): void
-    {
-        $this->securityToken = $securityToken;
-    }
-
 
 }

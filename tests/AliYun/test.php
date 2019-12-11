@@ -5,8 +5,8 @@
  * Date: 2019/11/20 0020
  * Time: 15:28
  */
-include "./vendor/autoload.php";
-include "./phpunit.php";
+include "../../vendor/autoload.php";
+include "../../phpunit2.php";
 
 go(function (){
 
@@ -16,6 +16,6 @@ go(function (){
         'endpoint'        => END_POINT,
     ]);
     $client = new \EasySwoole\Oss\AliYun\OssClient($config);
-    $data = $client->putObject('tioncicoxyz','test',__FILE__);
+    $data = $client->putObject('tioncicoxyz','test11',__FILE__);
     var_dump($data);
 });

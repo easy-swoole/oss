@@ -2,7 +2,7 @@
 
 namespace EasySwoole\Oss\Tencent;
 
-use Psr\Http\Message\RequestInterface;
+use EasySwoole\Oss\Tencent\Http\HttpClient;
 
 class Signature {
     private $accessKey;           // string: access key.
@@ -14,14 +14,17 @@ class Signature {
     }
     public function __destruct() {
     }
-    public function signRequest(RequestInterface $request) {
+    public function signRequest(HttpClient $request) {
         $authorization = $this->createAuthorization($request);
-        return $request->withHeader('Authorization', $authorization);
+        return $request->setHeader('Authorization', $authorization,false);
     }
-    public function createAuthorization(RequestInterface $request, $expires = "+30 minutes") {
+    public function createAuthorization(HttpClient $request, $expires = "+30 minutes") {
+
         $signTime = (string)(time() - 60) . ';' . (string)(strtotime($expires));
-        $httpString = strtolower($request->getMethod()) . "\n" . urldecode($request->getUri()->getPath()) .
-            "\n\nhost=" . $request->getUri()->getHost() . "\n";
+
+        $httpString = strtolower($request->getClient()->requestMethod) . "\n" .
+            urldecode($request->getUrl()->getPath()) .
+            "\n\nhost=" . $request->getUrl()->getHost() . "\n";
         $sha1edHttpString = sha1($httpString);
         $stringToSign = "sha1\n$signTime\n$sha1edHttpString\n";
         $signKey = hash_hmac('sha1', $signTime, $this->secretKey);
@@ -31,10 +34,11 @@ class Signature {
             "q-signature=$signature";
         return $authorization;
     }
-    public function createPresignedUrl(RequestInterface $request, $expires = "+30 minutes") {
+
+    public function createPresignedUrl(HttpClient $request, $expires = "+30 minutes") {
         $authorization = $this->createAuthorization($request, $expires);
-        $uri = $request->getUri();
-        $uri = $uri->withQuery("sign=".urlencode($authorization));
+        $uri = $request->getUrl();
+        $uri->setQuery(OssUtil::filterQueryAndFragment("sign=".urlencode($authorization)));
         return $uri;
     }
 }

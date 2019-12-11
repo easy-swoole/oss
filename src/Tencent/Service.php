@@ -1,6 +1,8 @@
 <?php
 namespace EasySwoole\Oss\Tencent;
 // http://guzzle3.readthedocs.io/webservice-client/guzzle-service-descriptions.html
+use EasySwoole\Spl\SplStream;
+
 class Service {
     public static function getService() {
         return [
@@ -2933,7 +2935,7 @@ class Service {
                     'properties' => array(
                         'Body' => array(
                             'type' => 'string',
-                            'instanceOf' => 'GuzzleHttp\\Psr7\\Stream',
+                            'instanceOf' => SplStream::class,
                             'location' => 'body',
                         ),
                         'DeleteMarker' => array(

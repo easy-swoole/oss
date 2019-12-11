@@ -7,7 +7,7 @@ use EasySwoole\Spl\SplBean;
 class Config extends SplBean
 {
     protected $schema = 'http';//http
-    protected $endpoint = null;//节点
+    protected $endpoint = 'myqcloud.com';//节点
     protected $region = '';//地区
     protected $appId=null;//appid
     protected $secretId="";//secretId
@@ -18,7 +18,7 @@ class Config extends SplBean
     protected $connect_timeout;//连接超时时间
     protected $ip=null;//ip
     protected $port=null;//端口
-    protected $proxy=null;//是否代理
+    protected $proxy= null;//是否代理 http代理 $proxy=['127.0.0.1','8080','user','pass']
     protected $userAgent='easyswoole/httpClient';//ua标识
     protected $pathStyle=false;
 

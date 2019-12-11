@@ -61,7 +61,6 @@ class ExceptionMiddleware {
 
     protected function createException($className, RequestInterface $request, ResponseInterface $response, array $parts) {
         $class = new $className($parts['message']);
-
         if ($class instanceof ServiceResponseException) {
             $class->setExceptionCode($parts['code']);
             $class->setExceptionType($parts['type']);

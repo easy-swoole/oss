@@ -2,74 +2,135 @@
 
 namespace EasySwoole\Oss\Tencent;
 
-use EasySwoole\Oss\Tencent\Exception\OssException;
+use EasySwoole\Oss\Tencent\Exception\ServiceResponseException;
+use EasySwoole\Oss\Tencent\Http\Command;
+use EasySwoole\Oss\Tencent\Http\HttpClient;
 
 
-class OssClient extends Http\HttpClient
+use EasySwoole\HttpClient\Bean\Response;
+use EasySwoole\Oss\Tencent\Http\Result;
+use EasySwoole\Oss\Tencent\Request\RequestHandel;
+use EasySwoole\Spl\SplStream;
+
+class OssClient
 {
 
-    public function commandToRequestTransformer(CommandInterface $command)
+    protected $cosConfig;
+    protected $signature;
+    protected $extraData;
+    protected $service;
+    /**
+     * @var $request HttpClient
+     */
+    protected $request;
+
+    public function __construct(Config $cosConfig)
     {
-        $action = $command->GetName();
-        $opreation = $this->api[$action];
-        $transformer = new CosTransformer($this->cosConfig, $opreation);
-        $seri = new Serializer($this->desc);
-        $request = $seri($command);
-        $request = $transformer->bucketStyleTransformer($command, $request);
-        $request = $transformer->uploadBodyTransformer($command, $request);
-        $request = $transformer->md5Transformer($command, $request);
+        $this->cosConfig = $cosConfig;
+        $this->service = Service::getService();
+        $this->signature = new Signature($this->cosConfig->getSecretId(), $this->cosConfig->getSecretKey());
+    }
+
+    public function commandToRequestTransformer(Command $command)
+    {
+        $this->request = new HttpClient();
+        $cosConfig = $this->cosConfig;
+        $request = $this->request;
+        $request->setHeader('User-Agent', $cosConfig->getUserAgent());
+        if ($cosConfig->getToken() != null) {
+            $request->setHeader('x-cos-security-token', $cosConfig->getToken());
+        }
+        //代理
+        if ($this->cosConfig->getProxy()){
+            $this->request->setProxyHttp(...$this->cosConfig->getProxy());
+        }
+
+        $request->setTimeout($cosConfig->getTimeout());
+        $url = $this->cosConfig->getSchema() . '://cos.' . $this->cosConfig->getRegion() . '.myqcloud.com';
+        $request->setUrl($url);
+
+        $action = $command->getName();
+        $operation = $this->service['operations'][$action];
+        $requestHandel = new RequestHandel($request,$operation,$command->data);
+        $requestHandel->handel();
+
+        $transformer = new CosTransformer($this->cosConfig, $operation);
+        $transformer->bucketStyleTransformer($command, $request);
+        $transformer->uploadBodyTransformer($command, $request);
+        $transformer->md5Transformer($command, $request);
+        $transformer->addContentLength($request);
         $request = $transformer->specialParamTransformer($command, $request);
+        //这里进行setBody
+        $request->getClient()->setData($this->request->getRequestBody());
         return $request;
     }
 
-    public function responseToResultTransformer(ResponseInterface $response, RequestInterface $request, CommandInterface $command)
+    public function responseToResultTransformer(Response $response,Command $command)
     {
+        $operations = $this->service['operations'][$command->getName()];
+        $operationsResult = $this->service['models'][$operations['responseClass']];
         $action = $command->getName();
         if ($action == "GetObject") {
             if (isset($command['SaveAs'])) {
+                //写入文件
                 $fp = fopen($command['SaveAs'], "wb");
                 fwrite($fp, $response->getBody());
                 fclose($fp);
             }
         }
-        $deseri = new Deserializer($this->desc, true);
-        $response = $deseri($response, $request, $command);
-        if ($command['Key'] != null && $response['Key'] == null) {
-            $response['Key'] = $command['Key'];
-        }
-        if ($command['Bucket'] != null && $response['Bucket'] == null) {
-            $response['Bucket'] = $command['Bucket'];
-        }
-        $response['Location'] = $request->getUri()->getHost() . $request->getUri()->getPath();
 
-        return $response;
+        $result = new Result($response, $operationsResult);
+        $result->Location = $this->request->getUrl()->getHost() . $this->request->getUrl()->getPath();
+        return $result;
     }
 
-    public function __call($method, array $args)
+    function __call($name, array $args)
     {
-        try {
-            parent::__call(ucfirst($method), $args);
-        } catch (OssException $e) {
-            $previous = $e->getPrevious();
-            if ($previous !== null) {
-                throw $previous;
-            } else {
-                throw $e;
-            }
+        $name = ucfirst($name);
+        $args = isset($args[0]) ? $args[0] : [];
+        $command = $this->getCommand($name, $args);
+        $this->commandToRequestTransformer($command);
+
+        //请求数据生成加密
+        if ($this->cosConfig->getAnonymous() != true) {
+            $this->signature->signRequest($this->request);
         }
+        $response = $this->request->request();
+
+        $this->checkResponse($response);
+        return $this->responseToResultTransformer($response,$command);
     }
 
-    public function getApi()
+    function checkResponse(Response $response)
     {
-        return $this->api;
+        if ((int)(intval($response->getStatusCode()) / 100) != 2) {
+            $xmlBody = simplexml_load_string($response->getBody());
+            $jsonData = json_encode($xmlBody);
+            $body = json_decode($jsonData, true);
+            $exception = new ServiceResponseException($body['Message']);
+            $exception->setExceptionCode($body['Code']);
+            $exception->setResponse($response);
+            $exception->setExceptionType($body['Code']);
+            $exception->setRequestId($body['RequestId']);
+            throw  $exception;
+        }
+        return true;
     }
 
-    private function getCosConfig()
+    public function getCommand($name, array $params = [])
     {
-        return $this->cosConfig;
+        return new Command($name, $params);
     }
 
-    private function createPresignedUrl(RequestInterface $request, $expires)
+    public function handelRequestOperation(HttpClient $request,$operation){
+
+    }
+
+
+
+
+
+    private function createPresignedUrl(HttpClient $request, $expires)
     {
         return $this->signature->createPresignedUrl($request, $expires);
     }
@@ -90,8 +151,9 @@ class OssClient extends Http\HttpClient
 
     public function upload($bucket, $key, $body, $options = array())
     {
-        $body = Psr7\stream_for($body);
+        $body = new SplStream($body);
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : MultipartUpload::MIN_PART_SIZE;
+
         if ($body->getSize() < $options['PartSize']) {
             $rt = $this->putObject(array(
                     'Bucket' => $bucket,
@@ -111,7 +173,7 @@ class OssClient extends Http\HttpClient
 
     public function resumeUpload($bucket, $key, $body, $uploadId, $options = array())
     {
-        $body = Psr7\stream_for($body);
+        $body = new SplStream($body);
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : MultipartUpload::DEFAULT_PART_SIZE;
         $multipartUpload = new MultipartUpload($this, $body, array(
                 'Bucket'   => $bucket,
@@ -129,9 +191,9 @@ class OssClient extends Http\HttpClient
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : Copy::DEFAULT_PART_SIZE;
 
         // set copysource client
-        $sourceConfig = $this->rawCosConfig;
-        $sourceConfig['region'] = $copySource['Region'];
-        $cosSourceClient = new Client($sourceConfig);
+        $sourceConfig = $this->cosConfig;
+        $sourceConfig->setRegion($copySource['Region']);
+        $cosSourceClient = new OssClient($sourceConfig);
         $copySource['VersionId'] = isset($copySource['VersionId']) ? $copySource['VersionId'] : "";
         try {
             $rt = $cosSourceClient->headObject(
@@ -202,17 +264,5 @@ class OssClient extends Http\HttpClient
         return implode("/", $split_key);
     }
 
-    public static function handleSignature($secretId, $secretKey)
-    {
-        return function (callable $handler) use ($secretId, $secretKey) {
-            return new SignatureMiddleware($handler, $secretId, $secretKey);
-        };
-    }
 
-    public static function handleErrors()
-    {
-        return function (callable $handler) {
-            return new ExceptionMiddleware($handler);
-        };
-    }
 }

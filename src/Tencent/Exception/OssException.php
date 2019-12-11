@@ -3,4 +3,6 @@
 namespace EasySwoole\Oss\Tencent\Exception;
 
 
-class OssException extends ServiceResponseException {}
+class OssException extends \Exception {
+
+}

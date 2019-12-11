@@ -84,7 +84,7 @@ class OssClient
     //最大重试次数
     private $maxRetries = 3;
     //是否开启代理
-    protected $requestProxy = null;
+    protected $requestProxy = null;// $requestProxy=['127.0.0.1','8080','user','pass']
 
     public function __construct(Config $config, $securityToken = NULL, $requestProxy = null)
     {
@@ -1980,6 +1980,10 @@ class OssClient
         $httpClient->setHeader('Referer', $this->requestUrl);
         //设置文件上传
         $this->setHttpClientFileStream($httpClient, $options);
+        //设置代理
+        if ($this->requestProxy){
+            $httpClient->setProxyHttp(...$this->requestProxy);
+        }
 
         //组装headers
         $headers = new RequestHeaders($config);

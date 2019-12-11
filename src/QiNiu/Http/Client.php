@@ -11,7 +11,7 @@ final class Client
     public static function get($url, array $headers = array())
     {
         $httpClient = new HttpClient($url);
-        $httpClient->setHeaders($headers);
+        $httpClient->setHeaders($headers,true,false);
         self::clientHandel($httpClient);
         $response = $httpClient->get();
         $response = new \EasySwoole\Oss\QiNiu\Http\Response($response);
@@ -21,7 +21,7 @@ final class Client
     public static function delete($url, array $headers = array())
     {
         $httpClient = new HttpClient($url);
-        $httpClient->setHeaders($headers);
+        $httpClient->setHeaders($headers,true,false);
         self::clientHandel($httpClient);
         $response = $httpClient->delete();
         $response = new \EasySwoole\Oss\QiNiu\Http\Response($response);
@@ -46,7 +46,7 @@ final class Client
     public static function PUT($url, $body, array $headers = array())
     {
         $httpClient = new HttpClient($url);
-        $httpClient->setHeaders($headers);
+        $httpClient->setHeaders($headers,true,false);
         self::clientHandel($httpClient);
         $httpClient->getClient()->setData($body);
         $response = $httpClient->delete();

@@ -27,7 +27,6 @@ class QiNiuBaseTestCase extends TestCase
     {
         $this->testAuth = new Auth(QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
 
-
         $dummyAccessKey = 'abcdefghklmnopq';
         $dummySecretKey = '1234567890';
         $this->dummyAuth = new Auth($dummyAccessKey, $dummySecretKey);

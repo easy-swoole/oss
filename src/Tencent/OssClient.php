@@ -70,29 +70,22 @@ class OssClient
         return $request;
     }
 
-    public function responseToResultTransformer(Response $response, $name)
+    public function responseToResultTransformer(Response $response,Command $command)
     {
-        $operations = $this->service['operations'][$name];
+        $operations = $this->service['operations'][$command->getName()];
         $operationsResult = $this->service['models'][$operations['responseClass']];
-        $action = $name;
+        $action = $command->getName();
         if ($action == "GetObject") {
             if (isset($command['SaveAs'])) {
                 //写入文件
-//                $fp = fopen($command['SaveAs'], "wb");
-//                fwrite($fp, $response->getBody());
-//                fclose($fp);
+                $fp = fopen($command['SaveAs'], "wb");
+                fwrite($fp, $response->getBody());
+                fclose($fp);
             }
         }
 
         $result = new Result($response, $operationsResult);
-//        if ($command['Key'] != null && $response['Key'] == null) {
-//            $response['Key'] = $command['Key'];
-//        }
-//        if ($command['Bucket'] != null && $response['Bucket'] == null) {
-//            $response['Bucket'] = $command['Bucket'];
-//        }
         $result->Location = $this->request->getUrl()->getHost() . $this->request->getUrl()->getPath();
-//        var_dump($response);
         return $result;
     }
 
@@ -100,20 +93,17 @@ class OssClient
     {
         $name = ucfirst($name);
         $args = isset($args[0]) ? $args[0] : [];
-//        var_dump($args);
         $command = $this->getCommand($name, $args);
         $this->commandToRequestTransformer($command);
 
         //请求数据生成加密
-        $this->signature->signRequest($this->request);
-//        $this->request->setHeader('a',1);
-//        var_dump($name);
-        $response = $this->request->request();
-        if ($name=='UploadPart'){
-//            var_dump($response);
+        if ($this->cosConfig->getAnonymous() != true) {
+            $this->signature->signRequest($this->request);
         }
+        $response = $this->request->request();
+
         $this->checkResponse($response);
-        return $this->responseToResultTransformer($response, $name);
+        return $this->responseToResultTransformer($response,$command);
     }
 
     function checkResponse(Response $response)

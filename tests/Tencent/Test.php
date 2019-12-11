@@ -65,7 +65,6 @@ class COSTest extends TestCase
     protected function tearDown()
     {
        $data =  $this->cosClient->deleteBucket(['Bucket' => $this->bucket2]);
-//       var_dump($data);
 
     }
 

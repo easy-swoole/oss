@@ -23,7 +23,7 @@ go(function (){
         $options = ['PartSize' => 1024 + 1]
     );
     //获取文件内容
-    $rt = $cosClient->getObject(['Bucket' => TX_BUCKET, 'Key' => $key]);
+    $rt = $cosClient->getObject(['Bucket' => TX_BUCKET, 'Key' => $key,'SaveAs'=>'/www/easyswoole/tioncico_oss/1.txt']);
     var_dump($rt['Body']->__toString());
 });
 

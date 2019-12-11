@@ -30,10 +30,7 @@ class CosTransformer
         $action = $command->getName();
         $path = '';
         $operation = $this->operation;
-//        var_dump($operation);
         $httpMethod = $operation['httpMethod'];
-//        $request->setMethod($httpMethod);
-//        var_dump($operation);
         if ($action == 'ListBuckets') {
             $request->setUrl($this->config->getSchema() . "://service.cos.myqcloud.com/");
             $request->setMethod($httpMethod);
@@ -80,9 +77,7 @@ class CosTransformer
         $uri->setQuery(OssUtil::filterQueryAndFragment((string)$query));
 
         $request->setUrl($uri);
-//        var_dump($uri);
         $request->setMethod($httpMethod);
-//        var_dump($uri);
         return $request;
     }
 

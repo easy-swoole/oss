@@ -66,7 +66,6 @@ class XmlHandel
 
     function handelParam($key, $param, $op)
     {
-//        var_dump($op, $key, $param);
         $this->isXml = true;
         $this->request->setHeader('Content-Type', 'application/xml', false);
         $this->handelXmlElement($op['type'], $key, $param, $op);

@@ -26,10 +26,8 @@ class Result implements \ArrayAccess
     function handelData(Response $response, array $operationsResult)
     {
         $body = $response->getBody();
-//        var_dump($response, $operationsResult);
 
         //现在看上去只有object
-//        if ($operationsResult['type']=='object'){ }
         if ($operationsResult['additionalProperties']) {
             $this->addProperties($response, $operationsResult['properties']);
         }

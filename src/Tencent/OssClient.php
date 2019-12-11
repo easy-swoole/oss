@@ -10,10 +10,7 @@ use EasySwoole\Oss\Tencent\Http\HttpClient;
 use EasySwoole\HttpClient\Bean\Response;
 use EasySwoole\Oss\Tencent\Http\Result;
 use EasySwoole\Oss\Tencent\Request\RequestHandel;
-use EasySwoole\Oss\Tencent\Service;
-use EasySwoole\Oss\Tencent\Signature;
 use EasySwoole\Spl\SplStream;
-use phpDocumentor\Reflection\DocBlock\Serializer;
 
 class OssClient
 {
@@ -31,13 +28,7 @@ class OssClient
     {
         $this->cosConfig = $cosConfig;
         $this->service = Service::getService();
-
-//        if ($this->cosConfig['anonymous'] != true) {
-//            $handler->push($this::handleSignature($this->cosConfig['secretId'], $this->cosConfig['secretKey']));
-//        }
-
         $this->signature = new Signature($this->cosConfig->getSecretId(), $this->cosConfig->getSecretKey());
-
     }
 
     public function commandToRequestTransformer(Command $command)
@@ -49,6 +40,11 @@ class OssClient
         if ($cosConfig->getToken() != null) {
             $request->setHeader('x-cos-security-token', $cosConfig->getToken());
         }
+        //代理
+        if ($this->cosConfig->getProxy()){
+            $this->request->setProxyHttp(...$this->cosConfig->getProxy());
+        }
+
         $request->setTimeout($cosConfig->getTimeout());
         $url = $this->cosConfig->getSchema() . '://cos.' . $this->cosConfig->getRegion() . '.myqcloud.com';
         $request->setUrl($url);
@@ -66,7 +62,6 @@ class OssClient
         $request = $transformer->specialParamTransformer($command, $request);
         //这里进行setBody
         $request->getClient()->setData($this->request->getRequestBody());
-
         return $request;
     }
 

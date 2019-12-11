@@ -8,8 +8,6 @@
 
 namespace EasySwoole\Oss\AliYun\Http;
 
-
-use EasySwoole\HttpClient\HttpClient;
 use EasySwoole\Oss\AliYun\Config;
 use EasySwoole\Oss\AliYun\OssConst;
 
@@ -30,7 +28,6 @@ class RequestHeaders
             OssConst::OSS_CONTENT_MD5  => '',
             OssConst::OSS_CONTENT_TYPE => OssConst::DEFAULT_CONTENT_TYPE,
             OssConst::OSS_DATE         => gmdate('D, d M Y H:i:s \G\M\T'),
-//            OssConst::OSS_HOST         => $hostname,
         ];
         $this->headers = $headers;
         $this->config = $config;

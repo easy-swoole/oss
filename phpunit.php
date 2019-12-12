@@ -15,4 +15,3 @@ defined("TX_SECRETKEY") ?: define('TX_SECRETKEY', 'xxx');
 
 defined("QINIU_ACCESS_KEY") ?: define('QINIU_ACCESS_KEY', 'xxx');
 defined("QINIU_SECRET_KEY") ?: define('QINIU_SECRET_KEY', 'xxx');
-

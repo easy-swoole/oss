@@ -16,6 +16,6 @@ go(function (){
         'endpoint'        => END_POINT,
     ]);
     $client = new \EasySwoole\Oss\AliYun\OssClient($config);
-    $data = $client->putObject('tioncicoxyz','test11',__FILE__);
+    $data = $client->uploadFile('tioncicoxyz','test1112.jpg','/www/easyswoole/tioncico_oss/tests/Img/test.jpg');
     var_dump($data);
 });

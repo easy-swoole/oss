@@ -15,7 +15,7 @@ class Config extends SplBean
     protected $anonymous=false;//匿名
     protected $token="";//token
     protected $timeout=3600;//超时时间
-    protected $connect_timeout;//连接超时时间
+    protected $connectTimeout;//连接超时时间
     protected $ip=null;//ip
     protected $port=null;//端口
     protected $proxy= null;//是否代理 http代理 $proxy=['127.0.0.1','8080','user','pass']
@@ -187,7 +187,7 @@ class Config extends SplBean
      */
     public function getConnectTimeout()
     {
-        return $this->connect_timeout;
+        return $this->connectTimeout;
     }
 
     /**
@@ -195,7 +195,7 @@ class Config extends SplBean
      */
     public function setConnectTimeout($connect_timeout): void
     {
-        $this->connect_timeout = $connect_timeout;
+        $this->connectTimeout = $connect_timeout;
     }
 
     /**

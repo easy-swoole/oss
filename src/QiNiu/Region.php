@@ -144,7 +144,7 @@ class Region
     {
         $Region = new Region();
         $url = Config::API_HOST . '/v2/query' . "?ak=$ak&bucket=$bucket";
-        $ret = Client::Get($url);
+        $ret = Client::get($url);
         if (!$ret->ok()) {
             return array(null, new Error($url, $ret));
         }

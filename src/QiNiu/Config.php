@@ -1,4 +1,5 @@
 <?php
+
 namespace EasySwoole\Oss\QiNiu;
 
 final class Config
@@ -14,9 +15,9 @@ final class Config
     const RTCAPI_HOST = 'http://rtc.qiniuapi.com';
     const ARGUS_HOST = 'argus.atlab.ai';
     const CASTER_HOST = 'pili-caster.qiniuapi.com';
-    const SMS_HOST="https://sms.qiniuapi.com";
+    const SMS_HOST = "https://sms.qiniuapi.com";
     const RTCAPI_VERSION = 'v3';
-    const SMS_VERSION='v1';
+    const SMS_VERSION = 'v1';
 
     // Zone 空间对应的存储区域
     public $region;
@@ -26,6 +27,10 @@ final class Config
     public $useCdnDomains;
     // Zone Cache
     private $regionCache;
+
+    protected static $timeout = 3;
+
+    protected static $connectTimeout = 5;
 
     // 构造函数
     public function __construct(Region $z = null)
@@ -137,4 +142,37 @@ final class Config
         }
         return $region;
     }
+
+    /**
+     * @return int
+     */
+    public static function getTimeout(): int
+    {
+        return self::$timeout;
+    }
+
+    /**
+     * @param int $timeout
+     */
+    public static function setTimeout(int $timeout): void
+    {
+        self::$timeout = $timeout;
+    }
+
+    /**
+     * @return int
+     */
+    public static function getConnectTimeout(): int
+    {
+        return self::$connectTimeout;
+    }
+
+    /**
+     * @param int $connectTimeout
+     */
+    public static function setConnectTimeout(int $connectTimeout): void
+    {
+        self::$connectTimeout = $connectTimeout;
+    }
+
 }

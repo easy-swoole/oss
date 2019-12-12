@@ -1968,13 +1968,13 @@ class OssClient
         //创建请求
         $httpClient = new HttpClient();
         $httpClient->setTimeout($this->timeout);;
+        $httpClient->setConnectTimeout($this->connectTimeout);;
         //请求链接
         $httpClient->setUrl($this->requestUrl);
         //设置http请求方法
         $this->setHttpClientMethod($httpClient, $options);
         //设置http请求内容
         $this->setHttpClientData($httpClient, $options);
-        $httpClient->setConnectTimeout($this->connectTimeout);;
         //清除原有header并设置user-agent
         $httpClient->setHeader('User-Agent', $this->generateUserAgent(), false);
         $httpClient->setHeader('Referer', $this->requestUrl);

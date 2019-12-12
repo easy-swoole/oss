@@ -114,7 +114,6 @@ final class Client
         return $ua;
     }
 
-
     private static function parseHeaders($raw)
     {
         $headers = array();
@@ -143,6 +142,8 @@ final class Client
     }
 
     protected static function clientHandel(HttpClient $httpClient){
+        $httpClient->setTimeout(Config::getTimeout());
+        $httpClient->setConnectTimeout(Config::getConnectTimeout());
         $httpClient->setHeader('User-Agent',self::userAgent(),false);
     }
 }

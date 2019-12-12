@@ -8,6 +8,11 @@
       "EasySwoole\\Oss\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "EasySwoole\\Oss\\Tests\\": "tests/"
+    }
+  },
   "require": {
     "easyswoole/spl": "^1.3",
     "easyswoole/http-client": "^1.3"
@@ -17,7 +22,6 @@
     "easyswoole/phpunit": ">=1.0.0",
     "aliyuncs/oss-sdk-php": "^2.3",
     "qcloud/cos-sdk-v5": ">=2.0",
-    "qiniu/php-sdk": "^7.2",
-    "EasySwoole\\Oss\\Tests\\": "tests/"
+    "qiniu/php-sdk": "^7.2"
   }
 }

@@ -2000,7 +2000,7 @@ class OssClient
         $httpClient->setHeader('Authorization', $authorization, false);
 
         //如果是预检url,则直接返回
-        if ($url = $this->preAuth($options, $conjunction, $signature) !== null) {
+        if (($url = $this->preAuth($options, $signatureStr,$conjunction)) !== null) {
             return $url;
         }
 

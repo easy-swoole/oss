@@ -27,7 +27,7 @@ class RequestHeaders
     {
         $headers = [
             OssConst::OSS_CONTENT_MD5  => '',
-            OssConst::OSS_CONTENT_TYPE => OssConst::DEFAULT_CONTENT_TYPE,
+            OssConst::OSS_CONTENT_TYPE => '',
             OssConst::OSS_DATE         => gmdate('D, d M Y H:i:s \G\M\T'),
         ];
         $this->headers = $headers;

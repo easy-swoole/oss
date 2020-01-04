@@ -8,7 +8,7 @@
 include "../../vendor/autoload.php";
 include "../../phpunit2.php";
 
-go(function (){
+go(function () {
 
     $config = new \EasySwoole\Oss\AliYun\Config([
         'accessKeyId'     => ACCESS_KEY_ID,
@@ -16,6 +16,18 @@ go(function (){
         'endpoint'        => END_POINT,
     ]);
     $client = new \EasySwoole\Oss\AliYun\OssClient($config);
-    $data = $client->uploadFile('tioncicoxyz','test1112.jpg','/www/easyswoole/tioncico_oss/tests/Img/test.jpg');
+    $data = $client->signUrl(OSS_BUCKET,'oss-test.jpg');
     var_dump($data);
+
+
+    $ossClient = new \OSS\OssClient(
+        ACCESS_KEY_ID,
+        ACCESS_KEY_SECRET,
+        END_POINT, false);
+    $timeout = 3600;
+    $options = array(
+        \OSS\OssClient::OSS_PROCESS => "image/resize,m_lfit,h_100,w_100" );
+    $data = $ossClient->signUrl(OSS_BUCKET,'oss-test.jpg');
+    var_dump($data);
+
 });

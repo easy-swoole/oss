@@ -18,16 +18,17 @@ go(function () {
     $client = new \EasySwoole\Oss\AliYun\OssClient($config);
     $data = $client->signUrl(OSS_BUCKET,'oss-test.jpg');
     var_dump($data);
+//    var_dump($client->listBuckets());
 
 
-    $ossClient = new \OSS\OssClient(
-        ACCESS_KEY_ID,
-        ACCESS_KEY_SECRET,
-        END_POINT, false);
-    $timeout = 3600;
-    $options = array(
-        \OSS\OssClient::OSS_PROCESS => "image/resize,m_lfit,h_100,w_100" );
-    $data = $ossClient->signUrl(OSS_BUCKET,'oss-test.jpg');
-    var_dump($data);
+//    $ossClient = new \OSS\OssClient(
+//        ACCESS_KEY_ID,
+//        ACCESS_KEY_SECRET,
+//        END_POINT, false);
+//    $timeout = 3600;
+//    $options = array(
+//        \OSS\OssClient::OSS_PROCESS => "image/resize,m_lfit,h_100,w_100" );
+//    $data = $ossClient->signUrl(OSS_BUCKET,'oss-test.jpg');
+//    var_dump($data);
 
 });

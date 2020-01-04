@@ -31,7 +31,7 @@ class Signature
         foreach ($headers as $headerKey => $headerValue) {
             $headerValue = str_replace(array("\r", "\n"), '', $headerValue);
             $headerKey = strtolower($headerKey);
-            if ($headerKey === 'content-md5' || $headerKey === 'content-type' || $headerKey === 'date' || !(isset($options[OssConst::OSS_PREAUTH]) && (integer)$options[OssConst::OSS_PREAUTH] > 0)) {
+            if ($headerKey === 'content-md5' || $headerKey === 'content-type' || $headerKey === 'date' || (isset($options['OssConst::OSS_PREAUTH']) && (integer)$options['OssConst::OSS_PREAUTH'] > 0)) {
                 $stringToSign .= $headerValue . "\n";
             } elseif (substr($headerKey, 0, 6) === OssConst::OSS_DEFAULT_PREFIX) {
                 $stringToSign .= $headerKey . ':' . $headerValue . "\n";

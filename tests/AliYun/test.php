@@ -16,9 +16,15 @@ go(function () {
         'endpoint'        => END_POINT,
     ]);
     $client = new \EasySwoole\Oss\AliYun\OssClient($config);
-    $data = $client->signUrl(OSS_BUCKET,'oss-test.jpg');
-    var_dump($data);
-//    var_dump($client->listBuckets());
+//    $data = $client->signUrl(OSS_BUCKET,'oss-test.jpg');
+//    var_dump($data);
+    try{
+        var_dump($client->listBuckets());
+
+    }catch (\EasySwoole\Oss\AliYun\Core\OssException $throwable){
+        var_dump($throwable->getMessage());
+        var_dump($throwable->getErrorCode());
+    }
 
 
 //    $ossClient = new \OSS\OssClient(

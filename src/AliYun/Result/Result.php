@@ -97,12 +97,11 @@ abstract class Result
             $code = $this->retrieveErrorCode($this->rawResponse->getBody());
             $message = $this->retrieveErrorMessage($this->rawResponse->getBody());
             $body = $this->rawResponse->getBody();
-
             $details = array(
                 'status'     => $httpStatus,
                 'request-id' => $requestId,
-                'code'       => $code,
-                'message'    => $message,
+                'code'       => $code??$this->rawResponse->getErrCode(),
+                'message'    => $message??$this->rawResponse->getErrMsg(),
                 'body'       => $body
             );
             throw new OssException($details);
@@ -118,13 +117,13 @@ abstract class Result
     private function retrieveErrorMessage($body)
     {
         if (empty($body) || false === strpos($body, '<?xml')) {
-            return '';
+            return null;
         }
         $xml = simplexml_load_string($body);
         if (isset($xml->Message)) {
             return strval($xml->Message);
         }
-        return '';
+        return null;
     }
 
     /**
@@ -136,13 +135,13 @@ abstract class Result
     private function retrieveErrorCode($body)
     {
         if (empty($body) || false === strpos($body, '<?xml')) {
-            return '';
+            return null;
         }
         $xml = simplexml_load_string($body);
         if (isset($xml->Code)) {
             return strval($xml->Code);
         }
-        return '';
+        return  null;
     }
 
     /**

@@ -97,6 +97,7 @@ class OssConst
     //其他常量
     const OSS_ACL = 'x-oss-acl';
     const OSS_OBJECT_ACL = 'x-oss-object-acl';
+    const OSS_OBJECT_TAGGING = 'x-oss-tagging';
     const OSS_OBJECT_GROUP = 'x-oss-file-group';
     const OSS_MULTI_PART = 'uploads';
     const OSS_MULTI_DELETE = 'delete';

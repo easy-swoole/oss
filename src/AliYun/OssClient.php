@@ -20,6 +20,7 @@ use EasySwoole\Oss\AliYun\Model\CnameConfig;
 use EasySwoole\Oss\AliYun\Model\CorsConfig;
 use EasySwoole\Oss\AliYun\Model\LoggingConfig;
 use EasySwoole\Oss\AliYun\Model\StorageCapacityConfig;
+use EasySwoole\Oss\AliYun\Model\TaggingConfig;
 use EasySwoole\Oss\AliYun\Model\WebsiteConfig;
 use EasySwoole\Oss\AliYun\Result\ExistResult;
 use EasySwoole\Oss\AliYun\Result\GetLocationResult;
@@ -37,6 +38,7 @@ use EasySwoole\Oss\AliYun\Result\GetCnameResult;
 use EasySwoole\Oss\AliYun\Result\HeaderResult;
 use EasySwoole\Oss\AliYun\Result\InitiateMultipartUploadResult;
 use EasySwoole\Oss\AliYun\Result\ListMultipartUploadResult;
+use EasySwoole\Oss\AliYun\Result\TaggingResult;
 use EasySwoole\Oss\AliYun\Result\UploadPartResult;
 use EasySwoole\Oss\AliYun\Result\ListObjectsResult;
 use EasySwoole\Oss\AliYun\Result\ListPartsResult;
@@ -602,6 +604,76 @@ class OssClient
         $options[OssConst::OSS_SUB_RESOURCE] = 'acl';
         $response = $this->auth($options);
         $result = new PutSetDeleteResult($response);
+        return $result->getData();
+    }
+
+    /**
+     * 设置object的标签属性
+     *
+     * @param string $bucket bucket名称
+     * @param string $object object名称
+     * @param array $taggingArr 标签数组
+     * @throws InvalidUrl
+     * @throws OssException
+     * @return null
+     */
+    public function putObjectTagging($bucket, $object,array $taggingArr)
+    {
+        $this->preCheckCommon($bucket, $object, $options, true);
+        $options[OssConst::OSS_BUCKET] = $bucket;
+        $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_PUT;
+        $options[OssConst::OSS_OBJECT] = $object;
+        $options[OssConst::OSS_HEADERS] = array(OssConst::OSS_OBJECT_TAGGING => http_build_query($taggingArr));
+        $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+
+        $taggingConfig = new TaggingConfig($taggingArr);
+        $options[OssConst::OSS_CONTENT] = $taggingConfig->serializeToXml();
+        $response = $this->auth($options);
+        $result = new PutSetDeleteResult($response);
+        return $result->getData();
+    }
+
+    /**
+     * 获取object的Tag属性
+     *
+     * @param string $bucket
+     * @param string $object
+     * @throws InvalidUrl
+     * @throws OssException
+     * @return string
+     */
+    public function getObjectTagging($bucket, $object)
+    {
+        $options = array();
+        $this->preCheckCommon($bucket, $object, $options, true);
+        $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_GET;
+        $options[OssConst::OSS_BUCKET] = $bucket;
+        $options[OssConst::OSS_OBJECT] = $object;
+        $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+        $response = $this->auth($options);
+        $result = new TaggingResult($response);
+        return $result->getData();
+    }
+
+    /**
+     * 删除object的Tag属性
+     *
+     * @param string $bucket
+     * @param string $object
+     * @throws InvalidUrl
+     * @throws OssException
+     * @return string
+     */
+    public function deleteObjectTagging($bucket, $object)
+    {
+        $options = array();
+        $this->preCheckCommon($bucket, $object, $options, true);
+        $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_DELETE;
+        $options[OssConst::OSS_BUCKET] = $bucket;
+        $options[OssConst::OSS_OBJECT] = $object;
+        $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+        $response = $this->auth($options);
+        $result = new TaggingResult($response);
         return $result->getData();
     }
     ###########################object请求#################################
@@ -1817,7 +1889,6 @@ class OssClient
             // 初始化
             $uploadId = $this->initiateMultipartUpload($bucket, $object, $options);
         }
-
         // 获取的分片
         $pieces = $this->generateMultiuploadParts($upload_file_size, (integer)$options[OssConst::OSS_PART_SIZE]);
         $response_upload_part = array();

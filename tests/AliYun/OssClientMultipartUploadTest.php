@@ -46,7 +46,7 @@ class OssClientMultipartUploadTest extends TestOssClientBase
         unlink($bigFileName);
         unlink($localFilename);
     }
-    
+
     public function testMultipartUploadBigFileWithMD5Check()
     {
     	$bigFileName = __DIR__ . DIRECTORY_SEPARATOR . "/bigfile.tmp";
@@ -293,13 +293,13 @@ class OssClientMultipartUploadTest extends TestOssClientBase
             $this->assertFalse(true);
         }
     }
-    
+
     public function testPutObjectByMultipartUploadWithMD5Check()
     {
     	$object = "mpu/multipart-test.txt";
     	$file = __FILE__;
     	$options = array(OssConst::OSS_CHECK_MD5 => true);
-    
+
     	try {
     		$this->ossClient->multiuploadFile($this->bucket, $object, $file, $options);
             $this->assertTrue(true);

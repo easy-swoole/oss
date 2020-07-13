@@ -19,7 +19,7 @@ class TestOssClientBase extends AliYunBaseTestCase
     public function setUp()
     {
         parent::setUp();
-        $this->bucket = Common::getBucketName() . rand(100000, 999999);
+        $this->bucket = 'tioncicoxyz';
         $this->ossClient = Common::getOssClient();
         $this->ossClient->createBucket($this->bucket);
 	Common::waitMetaSync();
@@ -27,6 +27,7 @@ class TestOssClientBase extends AliYunBaseTestCase
 
     public function tearDown()
     {
+        return;
         if (!$this->ossClient->doesBucketExist($this->bucket)) {
             return;
         }

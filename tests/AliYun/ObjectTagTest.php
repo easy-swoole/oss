@@ -23,8 +23,10 @@ class ObjectTagTest extends AliYunBaseTestCase
             $this->assertTrue(!!$response);
             $response = $client->getObjectTagging($bucket, $object);
             $this->assertEquals($response,$tagArr);
+            $response = $client->deleteObjectTagging($bucket, $object);
+            $this->assertEquals($response,[]);
             $response = $client->getObjectTagging($bucket, $object);
-            $this->assertEquals($response,$tagArr);
+            $this->assertEquals($response,[]);
 
         } catch (OssException $e) {
             $this->assertFalse(True, $e->getMessage());

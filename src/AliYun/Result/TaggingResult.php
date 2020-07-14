@@ -23,7 +23,7 @@ class TaggingResult extends Result
             throw new OssException("body is null");
         }
         $xml = simplexml_load_string($content);
-        if (isset($xml->TagSet->Tag)) {
+        if (isset($xml->TagSet)) {
             $data = [];
             foreach ($xml->TagSet->Tag as $item){
                 $item = (array)$item;

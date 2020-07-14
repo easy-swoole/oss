@@ -672,8 +672,9 @@ class OssClient
         $options[OssConst::OSS_BUCKET] = $bucket;
         $options[OssConst::OSS_OBJECT] = $object;
         $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+        $options[OssConst::OSS_CONTENT] = '';
         $response = $this->auth($options);
-        $result = new TaggingResult($response);
+        $result = new DeleteObjectsResult($response);
         return $result->getData();
     }
     ###########################object请求#################################

@@ -9,8 +9,9 @@
 namespace EasySwoole\Oss\Tencent\Http;
 
 use EasySwoole\HttpClient\Bean\Url;
+use EasySwoole\Oss\BaseOssClient;
 
-class HttpClient extends \EasySwoole\HttpClient\HttpClient
+class HttpClient extends BaseOssClient
 {
     /**
      * @var $requestBody //自行记录的发送body
@@ -39,7 +40,7 @@ class HttpClient extends \EasySwoole\HttpClient\HttpClient
         return $this->url;
     }
 
-    function setUrl($url): \EasySwoole\HttpClient\HttpClient
+    function setUrl($url): BaseOssClient
     {
         if (is_string($url)) {
             return parent::setUrl($url);

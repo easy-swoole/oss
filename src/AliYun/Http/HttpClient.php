@@ -10,10 +10,11 @@ namespace EasySwoole\Oss\AliYun\Http;
 
 
 use EasySwoole\Oss\AliYun\OssConst;
+use EasySwoole\Oss\BaseOssClient;
 use Swoole\Coroutine\Http\Client;
 
 
-class HttpClient extends \EasySwoole\HttpClient\HttpClient
+class HttpClient extends BaseOssClient
 {
 
     /**

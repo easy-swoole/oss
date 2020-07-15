@@ -126,7 +126,7 @@ final class Response extends \EasySwoole\HttpClient\Bean\Response
         return;
     }
 
-    public function json()
+    public function json($assoc = false)
     {
         return $this->jsonData;
     }

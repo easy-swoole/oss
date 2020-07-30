@@ -559,6 +559,45 @@ class OssClient
         return $result->getData();
     }
 
+    public function putBucketTags($bucket,$tags){
+        $options = array();
+        $this->preCheckCommon($bucket, NULL, $options, false);
+        $options[OssConst::OSS_BUCKET] = $bucket;
+        $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_PUT;
+        $options[OssConst::OSS_OBJECT] = '/';
+        $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+        $taggingConfig = new TaggingConfig($tags);
+        $options[OssConst::OSS_CONTENT] = $taggingConfig->serializeToXml();
+        $response = $this->auth($options);
+        $result = new PutSetDeleteResult($response);
+        return $result->getData();
+    }
+
+    public function getBucketTags($bucket){
+        $options = array();
+        $this->preCheckCommon($bucket, NULL, $options, false);
+        $options[OssConst::OSS_BUCKET] = $bucket;
+        $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_GET;
+        $options[OssConst::OSS_OBJECT] = '/';
+        $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+        $response = $this->auth($options);
+        $result = new TaggingResult($response);
+        return $result->getData();
+    }
+
+    public function deleteBucketTags($bucket){
+        $options = array();
+        $this->preCheckCommon($bucket, NULL, $options, false);
+        $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_DELETE;
+        $options[OssConst::OSS_BUCKET] = $bucket;
+        $options[OssConst::OSS_OBJECT] = '/';
+        $options[OssConst::OSS_SUB_RESOURCE] = 'tagging';
+        $options[OssConst::OSS_CONTENT] = '';
+        $response = $this->auth($options);
+        $result = new DeleteObjectsResult($response);
+        return $result->getData();
+    }
+
     ###########################buket请求#################################
 
     ###########################object请求#################################

@@ -31,12 +31,5 @@ class ObjectTagTest extends AliYunBaseTestCase
         } catch (OssException $e) {
             $this->assertFalse(True, $e->getMessage());
         }
-//
-//        $client->putObjectAcl($bucket, $object, 'public-read');
-//        $acl = $client->getObjectAcl($bucket, $object);
-//        $this->assertEquals('public-read', $acl);
-//
-//        $content = $client->getObject($bucket, $object);
-//        $this->assertEquals('hello world', $content);
     }
 }

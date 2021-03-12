@@ -37,7 +37,7 @@ class XmlHandel
         $this->xml = $xml = new \XMLWriter();
         $xml->openMemory();
         $xml->startDocument('1.0', 'utf-8');
-        if ($opArr['data']['xmlRoot']['name']) {
+        if (isset($opArr['data']['xmlRoot']['name'])&&$opArr['data']['xmlRoot']['name']) {
             $xml->startElement($opArr['data']['xmlRoot']['name']);
         }
     }
@@ -126,7 +126,7 @@ class XmlHandel
     protected function handelString($keyName, $value, $op)
     {
         $xml = $this->xml;
-        if ($op['data']) {
+        if (isset($op['data'])&&$op['data']) {
             if ($op['data']['xmlAttribute']) {
                 $xml->writeAttribute($op['sentAs'] ?? $keyName, $value);
             }
@@ -152,20 +152,20 @@ class XmlHandel
         $xml = $this->xml;
         if ($type == 'object') {
             $xml->startElement($op['sentAs']??$op['name'] ?? $keyName);
-            if ($op['data']['xmlNamespace']) {
+            if (isset($op['data']['xmlNamespace'])) {
                 $xml->writeAttribute('xmlns:xsi', $op['data']['xmlNamespace']);
             }
             $this->handelObject($keyName, $value, $op['properties']);
             $xml->endElement();
         } elseif ($type == 'array') {
-            if ($op['sentAs']){
+            if (isset($op['sentAs'])&&$op['sentAs']){
                 $xml->startElement($op['sentAs']);
             }
-            if ($op['data']['xmlNamespace']) {
+            if (isset($op['data']['xmlNamespace'])&&$op['data']['xmlNamespace']) {
                 $xml->writeAttribute('xmlns:xsi', $op['data']['xmlNamespace']);
             }
             $this->handelArray($keyName, $value, $op['items']);
-            if ($op['sentAs']){
+            if (isset($op['sentAs'])&&$op['sentAs']){
                 $xml->endElement();
             }
         } elseif ($type == 'string' || $type == 'numeric') {

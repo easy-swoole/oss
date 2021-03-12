@@ -42,7 +42,7 @@ class Result implements \ArrayAccess
                     $propertyValue = $this->getXmlData($response,$key);
                     break;
                 case "header":
-                    $propertyValue = $response->getHeaders()[strtolower($property['sentAs']??$key)];
+                    $propertyValue = $response->getHeaders()[strtolower($property['sentAs']??$key)]??null;
                     break;
                 case "body":
                     if ($property['instanceOf']){
@@ -53,9 +53,9 @@ class Result implements \ArrayAccess
 
                     break;
             }
-            if ($property['type'] == 'array') {
+            if (isset($property['type'])&&$property['type'] == 'array') {
                 $this->$key[] = $propertyValue;
-            }elseif ($property['type'] == 'object'){
+            }elseif (isset($property['type'])&&$property['type'] == 'object'){
                 $this->$key = $propertyValue;
             } else {
                 $this->$key = $propertyValue;
@@ -70,7 +70,7 @@ class Result implements \ArrayAccess
             $body = json_decode($jsonData, true);
             $this->xmlData = $body;
         }
-        return $this->xmlData[$key];
+        return $this->xmlData[$key]??null;
     }
 
 

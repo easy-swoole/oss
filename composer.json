@@ -16,7 +16,8 @@
   "require": {
     "easyswoole/spl": "^1.3",
     "easyswoole/http-client": "^1.4",
-    "guzzlehttp/psr7": "1.6.1"
+    "guzzlehttp/psr7": "1.6.1",
+    "easyswoole/component": "^2.2"
   },
   "require-dev": {
     "easyswoole/swoole-ide-helper": "1.3.2",

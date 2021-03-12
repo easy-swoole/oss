@@ -59,7 +59,7 @@ class RequestHandel
         $opArr = $this->getOperation();
         $data = [];
         foreach ($args as $key => $arg) {
-            $op = $this->operation['parameters'][$key];
+            $op = $this->operation['parameters'][$key]??null;
             if ($op === null) {
                 continue;
             }

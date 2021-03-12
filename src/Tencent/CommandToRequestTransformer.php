@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use EasySwoole\Oss\Tencent\TokenListener;
 
 
-class CosTransformer
+class CommandToRequestTransformer
 {
     /**
      * @var $config Config
@@ -32,7 +32,21 @@ class CosTransformer
         $operation = $this->operation;
         $httpMethod = $operation['httpMethod'];
         if ($action == 'ListBuckets') {
-            $request->setUrl($this->config->getSchema() . "://service.cos.myqcloud.com/");
+            $uri =  "service.cos.myqcloud.com";
+
+            if ($this->config['endpoint'] != null) {
+                $uri = $this->config['endpoint'];
+            }
+            if ($this->config['domain'] != null) {
+                $uri = $this->config['domain'];
+            }
+            if ($this->config['ip'] != null) {
+                $uri = $this->config['ip'];
+                if ($this->config['port'] != null) {
+                    $uri = $this->config['ip'] . ":" . $this->config['port'];
+                }
+            }
+            $request->setUrl($this->config->getSchema()."://". $uri. "/");
             $request->setMethod($httpMethod);
             return $request;
         }

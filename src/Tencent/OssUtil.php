@@ -56,4 +56,26 @@ class OssUtil
         return (substr($haystack, -$length) === $needle);
     }
 
+
+
+   static function startWith( $haystack, $needle ) {
+        $length = strlen( $needle );
+        if ( $length == 0 ) {
+            return true;
+        }
+        return ( substr( $haystack, $length ) === $needle );
+    }
+
+   static function headersMap( $command, $request ) {
+        $headermap = array(
+            'TransferEncoding'=>'Transfer-Encoding',
+            'ChannelId'=>'x-cos-channel-id'
+        );
+        foreach ( $headermap as $key => $value ) {
+            if ( isset( $command[$key] ) ) {
+                $request = $request->withHeader( $value, $command[$key] );
+            }
+        }
+        return $request;
+    }
 }

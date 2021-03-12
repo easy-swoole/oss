@@ -2,13 +2,11 @@
 
 namespace EasySwoole\Oss\Tests\Tencent;
 
-//use EasySwoole\Oss\Tencent\Client;
 use EasySwoole\Oss\Tencent\Config;
 use EasySwoole\Oss\Tencent\Exception\ServiceResponseException;
 use EasySwoole\Oss\Tencent\Http\HttpClient;
 use EasySwoole\Oss\Tencent\OssClient;
 use PHPUnit\Framework\TestCase;
-use Qcloud\Cos\Client;
 
 class COSTest extends TestCase
 {
@@ -25,7 +23,7 @@ class COSTest extends TestCase
     private $bucket2;
     private $region;
 
-    protected function setUp()
+    protected function setUp():void
     {
         $config = new Config([
             'appId'     => TX_APP_ID,
@@ -62,7 +60,7 @@ class COSTest extends TestCase
 
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
 //       $data =  $this->cosClient->deleteBucket(['Bucket' => $this->bucket2]);
 

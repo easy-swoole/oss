@@ -32,6 +32,7 @@ class Signature {
         $authorization = 'q-sign-algorithm=sha1&q-ak='. $this->accessKey .
             "&q-sign-time=$signTime&q-key-time=$signTime&q-header-list=host&q-url-param-list=&" .
             "q-signature=$signature";
+
         return $authorization;
     }
 

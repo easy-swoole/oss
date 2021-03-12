@@ -54,7 +54,7 @@ class OssClient
         $requestHandel = new RequestHandel($request,$operation,$command->data);
         $requestHandel->handel();
 
-        $transformer = new CosTransformer($this->cosConfig, $operation);
+        $transformer = new CommandToRequestTransformer($this->cosConfig, $operation);
         $transformer->bucketStyleTransformer($command, $request);
         $transformer->uploadBodyTransformer($command, $request);
         $transformer->md5Transformer($command, $request);
@@ -122,7 +122,7 @@ class OssClient
         return new Command($name, $params);
     }
 
-    public function handelRequestOperation(HttpClient $request,$operation){
+    public function handleRequestOperation(HttpClient $request,$operation){
 
     }
 

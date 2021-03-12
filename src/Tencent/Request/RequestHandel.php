@@ -63,7 +63,7 @@ class RequestHandel
             if ($op === null) {
                 continue;
             }
-            $handelClass = $this->defaultRequestLocations[$op['location']];
+            $handelClass = $this->defaultRequestLocations[$op['location']]??null;
             if ($handelClass === null) {
                 continue;
             }

@@ -87,7 +87,7 @@ class Copy
                     'CopySource'      => $copySourcePath,
                     'CopySourceRange' => 'bytes=' . ((string)$offset) . '-' . (string)($offset + $partSize - 1),
                 );
-                if (!isset($parts[$partNumber])) {
+                if (!isset($this->parts[$partNumber])) {
                     $command = $this->client->getCommand('uploadPartCopy', $params);
                     $request = $this->client->commandToRequestTransformer($command);
                     $this->commandList[$index] = $command;
@@ -121,8 +121,8 @@ class Copy
 
             'rejected' => function ($reason, $index) {
                 $retry = 2;
+                $index += 1;
                 for ($i = 1; $i <= $retry; $i++) {
-                    $index = $index += 1;
                     try {
                         $rt = $this->client->execute($this->commandList[$index]);
                         $part = array('PartNumber' => $index, 'ETag' => $rt['ETag']);

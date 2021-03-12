@@ -3553,7 +3553,7 @@ class Service {
                                                 )
                                             )
                                         ),
-                                        
+
                                     ),
                                 ),
                             ),
@@ -4616,6 +4616,18 @@ class Service {
                         'RequestId' => array(
                             'location' => 'header',
                             'sentAs' => 'x-cos-request-id',
+                        ),
+                    ),
+                ),
+
+                'SelectObjectContentOutput' => array(
+                    'type' => 'object',
+                    'additionalProperties' => true,
+                    'properties' => array(
+                        'RawData' => array(
+                            'type' => 'string',
+                            'instanceOf' => SplStream::class,
+                            'location' => 'body',
                         ),
                     ),
                 ),

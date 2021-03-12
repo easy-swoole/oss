@@ -97,7 +97,7 @@ class LiveChannelInfo implements XmlConfig
     {
         throw new OssException("Not implemented.");
     }
-    
+
     private $name;
     private $description;
     private $publishUrls;

@@ -16,16 +16,16 @@ class TestOssClientBase extends AliYunBaseTestCase
      */
     protected $bucket;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
-        $this->bucket = 'tioncicoxyz';
+        $this->bucket = Common::getBucketName() . '-' . time();
         $this->ossClient = Common::getOssClient();
         $this->ossClient->createBucket($this->bucket);
-	Common::waitMetaSync();
+        Common::waitMetaSync();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         return;
         if (!$this->ossClient->doesBucketExist($this->bucket)) {

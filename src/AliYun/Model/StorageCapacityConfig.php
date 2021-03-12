@@ -2,6 +2,8 @@
 
 namespace EasySwoole\Oss\AliYun\Model;
 
+use EasySwoole\Oss\AliYun\Core\OssException;
+
 /**
  * Class StorageCapacityConfig
  *
@@ -13,7 +15,7 @@ class StorageCapacityConfig implements XmlConfig
     /**
      * StorageCapacityConfig constructor.
      *
-     * @param int $storageCapacity            
+     * @param int $storageCapacity
      */
     public function __construct($storageCapacity)
     {
@@ -29,7 +31,7 @@ class StorageCapacityConfig implements XmlConfig
     }
 
     /**
-     * 把StorageCapacityConfig序列化成xml
+     * Serialize StorageCapacityConfig into xml
      *
      * @return string
      */
@@ -53,7 +55,7 @@ class StorageCapacityConfig implements XmlConfig
     /**
      * Set storage capacity
      *
-     * @param int $storageCapacity            
+     * @param int $storageCapacity
      */
     public function setStorageCapacity($storageCapacity)
     {
@@ -62,7 +64,7 @@ class StorageCapacityConfig implements XmlConfig
 
     /**
      * Get storage capacity
-     * 
+     *
      * @return int
      */
     public function getStorageCapacity()

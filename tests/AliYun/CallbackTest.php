@@ -3,7 +3,7 @@
 namespace EasySwoole\Oss\Tests\AliYun;
 
 use EasySwoole\Oss\AliYun\Core\OssException;
-use OSS\OssClient;
+use EasySwoole\Oss\AliYun\OssClient;
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'TestOssClientBase.php';
 
@@ -44,21 +44,21 @@ class CallbackTest extends TestOssClientBase
         /**
          * step 3.
          */
-        $json = 
+        $json =
         '{
             "callbackUrl":"'.Common::getCallbackUrl().'",'.
         '   "callbackHost":"im.php20.cn",
             "callbackBody":"{\"mimeType\":${mimeType},\"size\":${size},\"x:var1\":${x:var1},\"x:var2\":${x:var2}}",
             "callbackBodyType":"application/json"
         }';
-            
-       $var = 
+
+       $var =
        '{
            "x:var1":"value1",
            "x:var2":"值2"
        }';
-       $options = array(OssClient::OSS_CALLBACK => $json,
-                        OssClient::OSS_CALLBACK_VAR => $var
+       $options = array(OssConst::OSS_CALLBACK => $json,
+                        OssConst::OSS_CALLBACK_VAR => $var
                        );
 
         try {
@@ -106,24 +106,24 @@ class CallbackTest extends TestOssClientBase
         /**
          * step 3.
          */
-        
-        $json = 
+
+        $json =
         '{
             "callbackUrl":"www.baidu.com",
             "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
             "callbackBody":"{\"mimeType\":${mimeType},\"size\":${size},\"x:var1\":${x:var1},\"x:var2\":${x:var2}}",
             "callbackBodyType":"application/json"
         }';
-            
-       $var = 
+
+       $var =
        '{
        "x:var1":"value1",
        "x:var2":"值2"
        }';
-       $options = array(OssClient::OSS_CALLBACK => $json,
-                        OssClient::OSS_CALLBACK_VAR => $var
+       $options = array(OssConst::OSS_CALLBACK => $json,
+                        OssConst::OSS_CALLBACK_VAR => $var
                        );
-        
+
         try {
             $result = $this->ossClient->completeMultipartUpload($this->bucket, $object, $upload_id, $upload_parts, $options);
             $this->assertTrue(false);
@@ -133,104 +133,104 @@ class CallbackTest extends TestOssClientBase
         }
 
     }
-   
+
     public function testPutObjectCallbackNormal()
     {
         //json
         {
-            $json = 
+            $json =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"{\"mimeType\":${mimeType},\"size\":${size}}",
                 "callbackBodyType":"application/json"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $json);
+            $options = array(OssConst::OSS_CALLBACK => $json);
             $this->putObjectCallbackOk($options, "200");
        }
        //url
        {
-            $url = 
+            $url =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&imageInfo.height=${imageInfo.height}&imageInfo.width=${imageInfo.width}&imageInfo.format=${imageInfo.format}",
                 "callbackBodyType":"application/x-www-form-urlencoded"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $url);
+            $options = array(OssConst::OSS_CALLBACK => $url);
             $this->putObjectCallbackOk($options, "200");
-        } 
-        // Unspecified typre 
+        }
+        // Unspecified typre
        {
-            $url = 
+            $url =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&imageInfo.height=${imageInfo.height}&imageInfo.width=${imageInfo.width}&imageInfo.format=${imageInfo.format}"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $url);
+            $options = array(OssConst::OSS_CALLBACK => $url);
             $this->putObjectCallbackOk($options, "200");
         }
         //json and body is chinese
         {
-            $json = 
+            $json =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"{\" 春水碧于天，画船听雨眠。\":\"垆边人似月，皓腕凝霜雪。\"}",
                 "callbackBodyType":"application/json"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $json);
+            $options = array(OssConst::OSS_CALLBACK => $json);
             $this->putObjectCallbackOk($options, "200");
         }
         //url and body is chinese
         {
-            $url = 
+            $url =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"春水碧于天，画船听雨眠。垆边人似月，皓腕凝霜雪",
                 "callbackBodyType":"application/x-www-form-urlencoded"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $url);
+            $options = array(OssConst::OSS_CALLBACK => $url);
             $this->putObjectCallbackOk($options, "200");
         }
         //json and add callback_var
         {
-            $json = 
+            $json =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"{\"mimeType\":${mimeType},\"size\":${size},\"x:var1\":${x:var1},\"x:var2\":${x:var2}}",
                 "callbackBodyType":"application/json"
             }';
-            
-            $var = 
+
+            $var =
             '{
                 "x:var1":"value1",
                 "x:var2":"aliyun.com"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $json,
-                             OssClient::OSS_CALLBACK_VAR => $var
+            $options = array(OssConst::OSS_CALLBACK => $json,
+                             OssConst::OSS_CALLBACK_VAR => $var
                              );
             $this->putObjectCallbackOk($options, "200");
         }
         //url and add callback_var
         {
-            $url = 
+            $url =
             '{
                 "callbackUrl":"'.Common::getCallbackUrl().'",'.
             '   "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&imageInfo.height=${imageInfo.height}&imageInfo.width=${imageInfo.width}&imageInfo.format=${imageInfo.format}&my_var1=${x:var1}&my_var2=${x:var2}",
                 "callbackBodyType":"application/x-www-form-urlencoded"
             }';
-            $var = 
+            $var =
             '{
                 "x:var1":"value1凌波不过横塘路，但目送，芳",
                 "x:var2":"值2"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $url,
-                             OssClient::OSS_CALLBACK_VAR => $var
+            $options = array(OssConst::OSS_CALLBACK => $url,
+                             OssConst::OSS_CALLBACK_VAR => $var
                             );
             $this->putObjectCallbackOk($options, "200");
         }
@@ -238,28 +238,28 @@ class CallbackTest extends TestOssClientBase
     }
 
     public function testPutCallbackWithCallbackFailed()
-    { 
+    {
         {
-            $json = 
+            $json =
             '{
                 "callbackUrl":"http://www.baidu.com",
                 "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"{\"mimeType\":${mimeType},\"size\":${size}}",
                 "callbackBodyType":"application/json"
             }';
-            $options = array(OssClient::OSS_CALLBACK => $json);
+            $options = array(OssConst::OSS_CALLBACK => $json);
             $this->putObjectCallbackFailed($options, "203");
         }
 
         {
-            $url = 
+            $url =
             '{
                 "callbackUrl":"http://www.baidu.com",
                 "callbackHost":"oss-cn-hangzhou.aliyuncs.com",
                 "callbackBody":"bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&imageInfo.height=${imageInfo.height}&imageInfo.width=${imageInfo.width}&imageInfo.format=${imageInfo.format}&my_var1=${x:var1}&my_var2=${x:var2}",
                 "callbackBodyType":"application/x-www-form-urlencoded"
-            }';      
-            $options = array(OssClient::OSS_CALLBACK => $url);
+            }';
+            $options = array(OssConst::OSS_CALLBACK => $url);
             $this->putObjectCallbackFailed($options, "203");
         }
 

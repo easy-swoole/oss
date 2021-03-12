@@ -15,7 +15,7 @@ use EasySwoole\Oss\AliYun\OssConst;
 /**
  * 阿里云oss公共响应头封装
  * Class CommonRequestHeaders
- * @package EasySwoole\Oss\AliYunOss\Http
+ * @package EasySwoole\Oss\AliYun\Oss\Http
  */
 class RequestHeaders
 {
@@ -34,16 +34,16 @@ class RequestHeaders
         $this->config = $config;
     }
 
-    public function generateHeaders($options, $hostname,OssClient $ossClient)
+    public function generateHeaders($options, $hostname, OssClient $ossClient)
     {
         $headers = $this->headers;
 
-        if (isset($options[OssConst::OSS_DATE])){
+        if (isset($options[OssConst::OSS_DATE])) {
             $headers[OssConst::OSS_DATE] = $options[OssConst::OSS_DATE];
         }
 
         $headers[OssConst::OSS_HOST] = $hostname;
-        if (isset($options[OssConst::OSS_CONTENT_TYPE])){
+        if (isset($options[OssConst::OSS_CONTENT_TYPE])) {
             $headers[OssConst::OSS_CONTENT_TYPE] = $options[OssConst::OSS_CONTENT_TYPE];
         }
 
@@ -61,7 +61,7 @@ class RequestHeaders
             $headers = array_merge($headers, $options[OssConst::OSS_HEADERS]);
             unset($headers[OssConst::OSS_HEADERS]);
         }
-        $headers = $this->handelHeader($options,$headers);
+        $headers = $this->handelHeader($options, $headers);
         return $headers;
     }
 
@@ -86,6 +86,7 @@ class RequestHeaders
         if (!isset($headers[OssConst::OSS_ACCEPT_ENCODING])) {
             $headers[OssConst::OSS_ACCEPT_ENCODING] = '';
         }
+        $headers['Expect'] = '';
         return $headers;
     }
 

@@ -52,7 +52,7 @@ class LiveChannelHistory implements XmlConfig
     {
         throw new OssException("Not implemented.");
     }
-    
+
     private $startTime;
     private $endTime;
     private $remoteAddr;

@@ -1,7 +1,7 @@
 <?php
 
-defined("ACCESS_KEY_ID") ?: define('ACCESS_KEY_ID', '');
-defined("ACCESS_KEY_SECRET") ?: define('ACCESS_KEY_SECRET', '');
+defined("ACCESS_KEY_ID") ?: define('ACCESS_KEY_ID', 'LTAI4GGE69uQzmpKcg8Uwydi');
+defined("ACCESS_KEY_SECRET") ?: define('ACCESS_KEY_SECRET', '14AnNtSUWzdQi0GLkBJTzzFIAgIPVp');
 defined("END_POINT") ?: define('END_POINT', 'oss-cn-hangzhou.aliyuncs.com');
 defined("OSS_BUCKET") ?: define('OSS_BUCKET', 'tioncicoxyz');
 defined("OSS_REGION") ?: define('OSS_REGION', 'oss-cn-hangzhou');

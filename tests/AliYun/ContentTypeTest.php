@@ -2,8 +2,7 @@
 
 namespace EasySwoole\Oss\Tests\AliYun;
 
-
-class ContentTypeTest extends AliYunBaseTestCase
+class ContentTypeTest extends TestOssClientBase
 {
     private function runCmd($cmd)
     {
@@ -16,16 +15,15 @@ class ContentTypeTest extends AliYunBaseTestCase
 
     private function getContentType($bucket, $object)
     {
-        $client = Common::getOssClient();
+        $client = $this->ossClient;
         $headers = $client->getObjectMeta($bucket, $object);
-//        var_dump($headers);
         return $headers['headers']['content-type'];
     }
 
     public function testByFileName()
     {
-        $client = Common::getOssClient();
-        $bucket = Common::getBucketName();
+        $client = $this->ossClient;
+        $bucket = $this->bucket;
 
         $file = '/tmp/x.html';
         $object = 'test/x';
@@ -33,7 +31,6 @@ class ContentTypeTest extends AliYunBaseTestCase
 
         $client->uploadFile($bucket, $object, $file);
         $type = $this->getContentType($bucket, $object);
-        var_dump($type);
 
         $this->assertEquals('text/html', $type);
 
@@ -49,8 +46,8 @@ class ContentTypeTest extends AliYunBaseTestCase
 
     public function testByObjectKey()
     {
-        $client = Common::getOssClient();
-        $bucket = Common::getBucketName();
+        $client = $this->ossClient;
+        $bucket = $this->bucket;
 
         $object = "test/x.txt";
         $client->putObject($bucket, $object, "hello world");
@@ -97,8 +94,8 @@ class ContentTypeTest extends AliYunBaseTestCase
 
     public function testByUser()
     {
-        $client = Common::getOssClient();
-        $bucket = Common::getBucketName();
+        $client = $this->ossClient;
+        $bucket = $this->bucket;
 
         $object = "test/x.txt";
         $client->putObject($bucket, $object, "hello world", array(

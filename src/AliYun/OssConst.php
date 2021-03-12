@@ -82,6 +82,14 @@ class OssConst
     const OSS_STORAGE_STANDARD = 'Standard';
     const OSS_STORAGE_IA = 'IA';
     const OSS_STORAGE_ARCHIVE = 'Archive';
+    const OSS_STORAGE_COLDARCHIVE = 'ColdArchive';
+    const OSS_TAGGING = 'tagging';
+    const OSS_WORM_ID = 'wormId';
+    const OSS_RESTORE_CONFIG = 'restore-config';
+    const OSS_KEY_MARKER = 'key-marker';
+    const OSS_VERSION_ID_MARKER = 'version-id-marker';
+    const OSS_VERSION_ID = 'versionId';
+    const OSS_HEADER_VERSION_ID = 'x-oss-version-id';
 
     //私有URL变量
     const OSS_URL_ACCESS_KEY_ID = 'OSSAccessKeyId';
@@ -106,6 +114,8 @@ class OssConst
     const OSS_PROCESS = "x-oss-process";
     const OSS_CALLBACK = "x-oss-callback";
     const OSS_CALLBACK_VAR = "x-oss-callback-var";
+    const OSS_REQUEST_PAYER = "x-oss-request-payer";
+    const OSS_TRAFFIC_LIMIT = "x-oss-traffic-limit";
     //支持STS SecurityToken
     const OSS_SECURITY_TOKEN = "x-oss-security-token";
     const OSS_ACL_TYPE_PRIVATE = 'private';
@@ -127,8 +137,8 @@ class OssConst
     );
     // OssClient版本信息
     const OSS_NAME = "aliyun-sdk-php";
-    const OSS_VERSION = "2.3.0";
-    const OSS_BUILD = "20180105";
+    const OSS_VERSION = "2.4.1";
+    const OSS_BUILD = "20200929";
     const OSS_AUTHOR = "";
     const OSS_OPTIONS_ORIGIN = 'Origin';
     const OSS_OPTIONS_REQUEST_METHOD = 'Access-Control-Request-Method';

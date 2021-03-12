@@ -3,7 +3,8 @@
 namespace EasySwoole\Oss\AliYun\Result;
 
 use EasySwoole\Oss\AliYun\Core\OssException;
-use OSS\OssClient;
+use EasySwoole\Oss\AliYun\OssClient;
+use EasySwoole\Oss\AliYun\OssConst;
 
 /**
  *
@@ -17,7 +18,7 @@ class SymlinkResult extends Result
      */
     protected function parseDataFromResponse()
     {
-        $this->rawResponse->getHeaders()[OssClient::OSS_SYMLINK_TARGET] = rawurldecode($this->rawResponse->getHeaders()[OssClient::OSS_SYMLINK_TARGET]);
+        $this->rawResponse->getHeaders()[OssConst::OSS_SYMLINK_TARGET] = rawurldecode($this->rawResponse->getHeaders()[OssConst::OSS_SYMLINK_TARGET]);
         return $this->rawResponse->getHeaders();
     }
 }

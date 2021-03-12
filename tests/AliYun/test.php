@@ -33,7 +33,7 @@ go(function () {
 //        END_POINT, false);
 //    $timeout = 3600;
 //    $options = array(
-//        \OSS\OssClient::OSS_PROCESS => "image/resize,m_lfit,h_100,w_100" );
+//        \OSS\OssConst::OSS_PROCESS => "image/resize,m_lfit,h_100,w_100" );
 //    $data = $ossClient->signUrl(OSS_BUCKET,'oss-test.jpg');
 //    var_dump($data);
 

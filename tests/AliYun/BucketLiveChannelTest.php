@@ -2,30 +2,28 @@
 
 namespace EasySwoole\Oss\Tests\AliYun;
 
+
+use EasySwoole\Oss\Tests\AliYun\AliYunBaseTestCase;
 use EasySwoole\Oss\AliYun\Model\LiveChannelConfig;
 use EasySwoole\Oss\AliYun\Core\OssException;
 
 class BucketLiveChannelTest extends AliYunBaseTestCase
 {
     private $bucketName;
+    private $client;
 
-    public function setUp()
+    public function setUp():void
     {
-        parent::setUp();
-        $this->client = Common::getOssClient();
-//        $this->bucketName = 'php-sdk-test-rtmp-bucket-name-' . 1;
         $this->bucketName = 'php-sdk-test-rtmp-bucket-name-' . strval(rand(0, 10000));
         $this->client->createBucket($this->bucketName);
         Common::waitMetaSync();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
     ////to delete created bucket
     //1. delele live channel
         $list = $this->client->listBucketLiveChannels($this->bucketName);
-//        $list = $this->ossClient->listBucketLiveChannels($this->bucketName);
-
         if (count($list->getChannelList()) != 0)
         {
             foreach($list->getChannelList() as $list)
@@ -54,9 +52,9 @@ class BucketLiveChannelTest extends AliYunBaseTestCase
 
         $objectList = $listObjectInfo->getObjectList(); // 文件列表
         if (!empty($objectList))
-        {   
+        {
             foreach($objectList as $objectInfo)
-                $this->client->deleteObject($this->bucketName, $objectInfo->getKey());     
+                $this->client->deleteObject($this->bucketName, $objectInfo->getKey());
         }
     //3. delete the bucket
         $this->client->deleteBucket($this->bucketName);
@@ -196,6 +194,39 @@ class BucketLiveChannelTest extends AliYunBaseTestCase
         $this->assertEquals('playlist.m3u8', $query['playlistName']);
     }
 
+    public function testGetgenPreSignedRtmpUrlVsSignedRtmpUrl()
+    {
+        $channelName = '90475';
+        $bucket = 'douyu';
+        $url1 = '245';
+        $url2 = '123';
+        $expiration = 0;
+
+        do {
+            $begin = time();
+            $expiration = time() + 900;
+            $url1 = $this->client->generatePresignedRtmpUrl($bucket, $channelName, $expiration, array(
+                'params' => array(
+                    'playlistName' => 'playlist.m3u8'
+                )
+            ));
+
+            $url2 = $this->client->signRtmpUrl($bucket, $channelName, 900, array(
+                'params' => array(
+                    'playlistName' => 'playlist.m3u8'
+                )
+            ));
+
+            $end = time();
+
+            if ($begin == $end)
+                break;
+            usleep(500000);
+        } while (true);
+        $this->assertEquals($url1, $url1);
+        $this->assertTrue(strpos($url1, 'Expires='.$expiration) !== false);
+    }
+
     public function testLiveChannelInfo()
     {
         $channelName = 'live-to-put-status';
@@ -234,7 +265,7 @@ class BucketLiveChannelTest extends AliYunBaseTestCase
             'playListName' => 'hello.m3u8'
         ));
         $this->client->putBucketLiveChannel($this->bucketName, $channelName, $config);
-       
+
         $info = $this->client->getLiveChannelInfo($this->bucketName, $channelName);
         $this->assertEquals('test live channel info', $info->getDescription());
         $this->assertEquals('enabled', $info->getStatus());
@@ -246,7 +277,7 @@ class BucketLiveChannelTest extends AliYunBaseTestCase
         $this->assertEquals('Idle', $status->getStatus());
 
 
-        $resp = $this->client->putLiveChannelStatus($this->bucketName, $channelName, "disabled"); 
+        $resp = $this->client->putLiveChannelStatus($this->bucketName, $channelName, "disabled");
         $info = $this->client->getLiveChannelInfo($this->bucketName, $channelName);
         $this->assertEquals('test live channel info', $info->getDescription());
         $this->assertEquals('disabled', $info->getStatus());
@@ -277,7 +308,7 @@ class BucketLiveChannelTest extends AliYunBaseTestCase
             'playListName' => 'hello.m3u8'
         ));
         $this->client->putBucketLiveChannel($this->bucketName, $channelName, $config);
-        
+
         $history = $this->client->getLiveChannelHistory($this->bucketName, $channelName);
         $this->assertEquals(0, count($history->getLiveRecordList()));
     }

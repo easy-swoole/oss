@@ -1,6 +1,9 @@
 <?php
 
 namespace EasySwoole\Oss\AliYun\Model;
+
+use EasySwoole\Oss\AliYun\Core\OssException;
+
 /**
  * Class GetLiveChannelHistory
  * @package EasySwoole\Oss\AliYun\Model
@@ -29,6 +32,6 @@ class GetLiveChannelHistory implements XmlConfig
     {
         throw new OssException("Not implemented.");
     }
-    
+
     private $liveRecordList = array();
 }

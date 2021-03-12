@@ -69,6 +69,10 @@ class Signature
             OssConst::OSS_POSITION,
             OssConst::OSS_SYMLINK,
             OssConst::OSS_RESTORE,
+            OssConst::OSS_TAGGING,
+            OssConst::OSS_WORM_ID,
+            OssConst::OSS_TRAFFIC_LIMIT,
+            OssConst::OSS_VERSION_ID,
         ];
         //过滤其他参数
         foreach ($signableList as $item) {

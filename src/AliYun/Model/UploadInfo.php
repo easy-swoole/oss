@@ -5,7 +5,7 @@ namespace EasySwoole\Oss\AliYun\Model;
 /**
  * Class UploadInfo
  *
- * ListMultipartUpload接口得到的UploadInfo
+ * The return value of ListMultipartUpload
  *
  * @package EasySwoole\Oss\AliYun\Model
  */

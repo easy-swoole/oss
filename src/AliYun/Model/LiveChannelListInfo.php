@@ -5,7 +5,7 @@ namespace EasySwoole\Oss\AliYun\Model;
 /**
  * Class LiveChannelListInfo
  *
- * ListBucketLiveChannels接口返回数据
+ * The data returned by ListBucketLiveChannels
  *
  * @package EasySwoole\Oss\AliYun\Model
  * @link http://help.aliyun.com/document_detail/oss/api-reference/bucket/GetBucket.html
@@ -96,7 +96,7 @@ class LiveChannelListInfo implements XmlConfig
     {
         throw new OssException("Not implemented.");
     }
-    
+
     private $bucket = '';
     private $prefix = '';
     private $marker = '';

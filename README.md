@@ -3,6 +3,39 @@
 ## 阿里云调用
 根据阿里云官方sdk修改,全部方法都一致,走通了所有官方的client请求类单元测试,全部调用方法都和阿里云一致
 文档可查看阿里云官方文档:https://help.aliyun.com/document_detail/32099.html?spm=a2c4g.11186623.2.17.de715d26YNLCah#concept-32099-zh
+
+### 阿里云更新日志
+20210312,将阿里云sdk版本支持从`2.3.1`更新为`2.4.1`,主要更新了以下方法:
+- getBucketInfo
+- getBucketStat
+- putBucketPolicy
+- getBucketPolicy
+- deleteBucketPolicy
+- putBucketEncryption
+- getBucketEncryption
+- deleteBucketEncryption
+- putBucketRequestPayment
+- getBucketRequestPayment
+- putBucketTags  (修改了返回对象)
+- getBucketTags  (修改了返回对象)
+- deleteBucketTags  (修改了返回对象)
+- putBucketVersioning
+- getBucketVersioning
+- initiateBucketWorm
+- abortBucketWorm
+- completeBucketWorm
+- extendBucketWorm
+- getBucketWorm
+- listObjectVersions
+- uploadStream
+- getSimplifiedObjectMeta
+- deleteObjectVersions
+- putObjectTagging(修改了返回对象)
+- getObjectTagging(修改了返回对象)
+- deleteObjectTagging(修改了返回对象)
+- processObject
+- generatePresignedUrl
+
 ```php
 <?php
 /**

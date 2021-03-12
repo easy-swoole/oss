@@ -15,9 +15,9 @@ class CopyObjectResult extends Result
     protected function parseDataFromResponse()
     {
         $body = $this->rawResponse->getBody();
-        $xml = simplexml_load_string($body); 
+        $xml = simplexml_load_string($body);
         $result = array();
-        
+
         if (isset($xml->LastModified)) {
             $result[] = $xml->LastModified;
         }
@@ -25,6 +25,6 @@ class CopyObjectResult extends Result
             $result[] = $xml->ETag;
         }
 
-         return $result;
+        return array_merge($result, $this->rawResponse->getHeaders());
     }
 }

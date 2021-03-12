@@ -5,7 +5,7 @@ namespace EasySwoole\Oss\Tests\AliYun;
 use EasySwoole\Oss\AliYun\Core\OssException;
 use EasySwoole\Oss\AliYun\Model\CorsConfig;
 use EasySwoole\Oss\AliYun\Model\CorsRule;
-use OSS\OssClient;
+use EasySwoole\Oss\AliYun\OssClient;
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'TestOssClientBase.php';
 

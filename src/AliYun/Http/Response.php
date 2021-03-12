@@ -14,7 +14,7 @@ use EasySwoole\HttpClient\Bean\Response as HttpResponse;
 /**
  * 阿里云oss公共响应封装
  * Class CommonRequestHeaders
- * @package EasySwoole\Oss\AliYunOss\Http
+ * @package EasySwoole\Oss\AliYun\Oss\Http
  */
 class Response extends HttpResponse
 {

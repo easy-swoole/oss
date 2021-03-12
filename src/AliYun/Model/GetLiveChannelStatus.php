@@ -73,7 +73,7 @@ class GetLiveChannelStatus implements XmlConfig
             $this->videoCodec = strval($video->Codec);
            }
         }
-        
+
         if (isset($xml->Video)) {
             foreach ($xml->Audio as $audio) {
             $this->audioBandwidth = intval($audio->Bandwidth);
@@ -88,7 +88,7 @@ class GetLiveChannelStatus implements XmlConfig
     {
         throw new OssException("Not implemented.");
     }
-    
+
     private $status;
     private $connectedTime;
     private $remoteAddr;
@@ -102,6 +102,6 @@ class GetLiveChannelStatus implements XmlConfig
     private $audioBandwidth;
     private $audioSampleRate;
     private $audioCodec;
-    
+
 
 }

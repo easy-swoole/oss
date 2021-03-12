@@ -21,17 +21,17 @@ class GetLiveChannelInfo implements XmlConfig
     {
         return $this->type;
     }
-  
+
     public function getFragDuration()
     {
         return $this->fragDuration;
     }
-   
+
     public function getFragCount()
     {
         return $this->fragCount;
     }
-   
+
     public function getPlayListName()
     {
         return $this->playlistName;
@@ -58,7 +58,7 @@ class GetLiveChannelInfo implements XmlConfig
     {
         throw new OssException("Not implemented.");
     }
-    
+
     private $description;
     private $status;
     private $type;

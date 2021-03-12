@@ -2,10 +2,10 @@
 
 namespace EasySwoole\Oss\Tests\AliYun;
 
-use OSS\OssClient;
-use OSS\Result\SymlinkResult;
+use EasySwoole\Oss\AliYun\OssClient;
+use EasySwoole\Oss\AliYun\Result\SymlinkResult;
 use EasySwoole\Oss\AliYun\Core\OssException;
-use OSS\Http\ResponseCore;
+use EasySwoole\Oss\AliYun\Http\Response;
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'TestOssClientBase.php';
 
@@ -13,7 +13,7 @@ class SymlinkTest extends TestOssClientBase
 {
     public function testPutSymlink()
     {
-        $bucket = getenv('OSS_BUCKET');
+        $bucket = $this->bucket;
         $symlink = 'test-link';
         $special_object = 'exist_object^$#!~';
         $object = 'exist_object';
@@ -31,20 +31,23 @@ class SymlinkTest extends TestOssClientBase
 
     public function testGetSymlink()
     {
-        $bucket = getenv('OSS_BUCKET');
+        $bucket = $this->bucket;
         $symlink = 'test-link';
         $object = 'exist_object^$#!~';
 
+        $this->ossClient ->putObject($bucket, $object, 'test_content');
+        $this->ossClient->putSymlink($bucket, $symlink, $object);
+
         $result = $this->ossClient->getSymlink($bucket, $symlink);
-        $this->assertEquals($result[OssClient::OSS_SYMLINK_TARGET], $object);
-        $this->assertEquals('200', $result[OssClient::OSS_INFO][OssClient::OSS_HTTP_CODE]);
-        $this->assertTrue(isset($result[OssClient::OSS_ETAG]));
-        $this->assertTrue(isset($result[OssClient::OSS_REQUEST_ID]));
+        $this->assertEquals($result[OssConst::OSS_SYMLINK_TARGET], $object);
+        $this->assertEquals('200', $result[OssConst::OSS_INFO][OssConst::OSS_HTTP_CODE]);
+        $this->assertTrue(isset($result[OssConst::OSS_ETAG]));
+        $this->assertTrue(isset($result[OssConst::OSS_REQUEST_ID]));
     }
 
     public function testPutNullSymlink()
     {
-        $bucket = getenv('OSS_BUCKET');
+        $bucket = $this->bucket;
         $symlink = 'null-link';
         $object_not_exist = 'not_exist_object+$#!b不';
         $this->ossClient->putSymlink($bucket, $symlink, $object_not_exist);
@@ -53,13 +56,13 @@ class SymlinkTest extends TestOssClientBase
             $this->ossClient->getObject($bucket, $symlink);
             $this->assertTrue(false);
         }catch (OssException $e){
-            $this->assertEquals('The specified key does not exist.', $e->getErrorMessage());
+            $this->assertEquals('The symlink target object does not exist', $e->getErrorMessage());
         }
     }
 
     public function testGetNullSymlink()
     {
-        $bucket = getenv('OSS_BUCKET');
+        $bucket = $this->bucket;
         $symlink = 'null-link-new';
 
         try{

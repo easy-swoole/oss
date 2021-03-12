@@ -111,7 +111,7 @@ EOF;
     {
         return $this->serializeToXml();
     }
-    
+
     private $description;
     private $status = "enabled";
     private $type;

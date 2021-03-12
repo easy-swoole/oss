@@ -3,7 +3,9 @@
 namespace EasySwoole\Oss\Tests\AliYun;
 
 use EasySwoole\Oss\AliYun\Core\OssException;
-use OSS\OssClient;
+use EasySwoole\Oss\AliYun\OssClient;
+use EasySwoole\Oss\AliYun\Model\RestoreConfig;
+use EasySwoole\Oss\AliYun\OssConst;
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'TestOssClientBase.php';
 
@@ -63,26 +65,106 @@ class OssClientRestoreObjectTest extends TestOssClientBase
         }
     }
 
-    public function setUp()
+    public function testColdArchiveRestoreObject()
+    {
+
+        $config = new \EasySwoole\Oss\AliYun\Config([
+            'accessKeyId'     => ACCESS_KEY_ID,
+            'accessKeySecret' => ACCESS_KEY_SECRET,
+            'endpoint'        => "oss-ap-southeast-1.aliyuncs.com",
+        ]);
+        $client = new OssClient($config);
+
+        $bucket = $this->bucket . 'cold-archive';
+        $object = 'storage-object';
+
+        //create bucket
+        $options = array(
+            OssConst::OSS_STORAGE => OssConst::OSS_STORAGE_COLDARCHIVE
+        );
+        $client->createBucket($bucket, OssConst::OSS_ACL_TYPE_PRIVATE, $options);
+
+        //test with days
+        $client->putObject($bucket, $object,'testcontent');
+
+        try{
+            $client->getObject($bucket, $object);
+            $this->assertTrue(false);
+        }catch (OssException $e){
+            $this->assertEquals('403', $e->getHTTPStatus());
+            $this->assertEquals('InvalidObjectState', $e->getErrorCode());
+        }
+
+        $config = new RestoreConfig(5);
+        $resoptions = array(
+            OssConst::OSS_RESTORE_CONFIG => $config
+        );
+        try{
+            $client->restoreObject($bucket, $object, $resoptions);
+        }catch(OssException $e){
+            $this->assertTrue(false);
+        }
+
+        try{
+            $client->restoreObject($bucket, $object, $resoptions);
+        }catch(OssException $e){
+            $this->assertEquals('409', $e->getHTTPStatus());
+            $this->assertEquals('RestoreAlreadyInProgress', $e->getErrorCode());
+        }
+
+        //test with days & tier
+        $client->putObject($bucket, $object,'testcontent');
+
+        try{
+            $client->getObject($bucket, $object);
+            $this->assertTrue(false);
+        }catch (OssException $e){
+            $this->assertEquals('403', $e->getHTTPStatus());
+            $this->assertEquals('InvalidObjectState', $e->getErrorCode());
+        }
+
+        $config = new RestoreConfig(5, "Expedited");
+        $resoptions = array(
+            OssConst::OSS_RESTORE_CONFIG => $config
+        );
+        try{
+            $client->restoreObject($bucket, $object, $resoptions);
+        }catch(OssException $e){
+            $this->assertTrue(false);
+        }
+
+        try{
+            $client->restoreObject($bucket, $object, $resoptions);
+        }catch(OssException $e){
+            $this->assertEquals('409', $e->getHTTPStatus());
+            $this->assertEquals('RestoreAlreadyInProgress', $e->getErrorCode());
+        }
+
+        $client->deleteObject($bucket, $object);
+        $client->deleteBucket($bucket);
+    }
+
+
+    public function setUp():void
     {
         parent::setUp();
 
         $this->iaBucket = 'ia-' . $this->bucket;
         $this->archiveBucket = 'archive-' . $this->bucket;
         $options = array(
-            OssClient::OSS_STORAGE => OssClient::OSS_STORAGE_IA
+            OssConst::OSS_STORAGE => OssConst::OSS_STORAGE_IA
         );
 
-        $this->ossClient->createBucket($this->iaBucket, OssClient::OSS_ACL_TYPE_PRIVATE, $options);
+        $this->ossClient->createBucket($this->iaBucket, OssConst::OSS_ACL_TYPE_PRIVATE, $options);
 
         $options = array(
-            OssClient::OSS_STORAGE => OssClient::OSS_STORAGE_ARCHIVE
+            OssConst::OSS_STORAGE => OssConst::OSS_STORAGE_ARCHIVE
         );
 
-        $this->ossClient->createBucket($this->archiveBucket, OssClient::OSS_ACL_TYPE_PRIVATE, $options);
+        $this->ossClient->createBucket($this->archiveBucket, OssConst::OSS_ACL_TYPE_PRIVATE, $options);
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
 

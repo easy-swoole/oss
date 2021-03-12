@@ -6,66 +6,71 @@ namespace EasySwoole\Oss\AliYun\Model;
 use EasySwoole\Oss\AliYun\Core\OssException;
 
 /**
- * Class CnameConfig
+ * Class TaggingConfig
  * @package EasySwoole\Oss\AliYun\Model
  *
- * TODO: fix link
- * @link http://help.aliyun.com/document_detail/oss/api-reference/cors/PutBucketcors.html
  */
 class TaggingConfig implements XmlConfig
 {
-
-    const OSS_MAX_RULES = 10;
-
-    private $taggingList = array();
-
-    public function __construct($taggingList = [])
+    /**
+     * TaggingConfig constructor.
+     */
+    public function __construct()
     {
-        $this->taggingList = $taggingList;
+        $this->tags = array();
+    }
+
+    /**
+     * Get Tag list
+     *
+     * @return Tag[]
+     */
+    public function getTags()
+    {
+        return $this->tags;
     }
 
 
-    public function getTagging()
+    /**
+     * Add a new Tag
+     *
+     * @param Tag $tag
+     * @throws OssException
+     */
+    public function addTag($tag)
     {
-        return $this->taggingList;
+        $this->tags[] = $tag;
     }
 
-
-    public function addTagging($key, $value)
-    {
-        if (count($this->taggingList) >= self::OSS_MAX_RULES) {
-            throw new OssException(
-                "num of tagging in the config exceeds self::OSS_MAX_RULES: " . strval(self::OSS_MAX_RULES));
-        }
-        $this->taggingList[$key] = $value;
-    }
-
+    /**
+     * Parse TaggingConfig from the xml.
+     *
+     * @param string $strXml
+     * @throws OssException
+     * @return null
+     */
     public function parseFromXml($strXml)
     {
         $xml = simplexml_load_string($strXml);
-        if (!isset($xml->Cname)) return;
-        foreach ($xml->Cname as $entry) {
-            $cname = array();
-            foreach ($entry as $key => $value) {
-                $cname[strval($key)] = strval($value);
-            }
-            $this->cnameList[] = $cname;
+        if (!isset($xml->TagSet) || !isset($xml->TagSet->Tag)) return;
+        foreach ($xml->TagSet->Tag as $tag) {
+            $this->addTag(new Tag($tag->Key, $tag->Value));
         }
     }
 
+    /**
+     * Serialize the object into xml string.
+     *
+     * @return string
+     */
     public function serializeToXml()
     {
-        $strXml = <<<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<Tagging>
-</Tagging>
-EOF;
-        $xml = new \SimpleXMLElement($strXml);
-        $set = $xml->addChild('TagSet');
-        foreach ($this->taggingList as $key => $value) {
-            $node = $set->addChild('Tag');
-            $node->addChild('Key', $key);
-            $node->addChild('Value', $value);
+        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><Tagging></Tagging>');
+        $xmlTagSet = $xml->addChild('TagSet');
+        foreach ($this->tags as $tag) {
+            $xmlTag = $xmlTagSet->addChild('Tag');
+            $xmlTag->addChild('Key', strval($tag->getKey()));
+            $xmlTag->addChild('Value', strval($tag->getValue()));
         }
         return $xml->asXML();
     }
@@ -74,4 +79,11 @@ EOF;
     {
         return $this->serializeToXml();
     }
+
+    /**
+     * Tag list
+     *
+     * @var Tag[]
+     */
+    private $tags = array();
 }

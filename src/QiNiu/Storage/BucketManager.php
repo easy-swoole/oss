@@ -32,6 +32,7 @@ final class BucketManager
     /**
      * 获取指定账号下所有的空间名。
      *
+     * @param bool $shared 指定共享空间，rw：读写权限空间，rd：读权限空间
      * @return string[] 包含所有空间名
      */
     public function buckets($shared = true)
@@ -73,11 +74,12 @@ final class BucketManager
      * @param $name     创建的空间名
      * @param $region    创建的区域，默认华东
      *
-     * @return mixed      成功返回NULL，失败返回对象Qiniu\Http\Error
+     * @return array
+     * @link https://developer.qiniu.com/kodo/api/1382/mkbucketv3
      */
     public function createBucket($name, $region = 'z0')
     {
-        $path = '/mkbucketv2/' . $name . '/region/' . $region;
+        $path = '/mkbucketv3/' . $name . '/region/' . $region;
         return $this->rsPost($path, null);
     }
 
@@ -86,7 +88,8 @@ final class BucketManager
      *
      * @param $name     删除的空间名
      *
-     * @return mixed      成功返回NULL，失败返回对象Qiniu\Http\Error
+     * @return array
+     * @link https://developer.qiniu.com/kodo/api/1601/drop-bucket
      */
     public function deleteBucket($name)
     {
@@ -97,7 +100,8 @@ final class BucketManager
     /**
      * 获取指定空间绑定的所有的域名
      *
-     * @return string[] 包含所有空间域名
+     * @param string $bucket 空间名称
+     * @return array
      */
     public function domains($bucket)
     {
@@ -107,7 +111,8 @@ final class BucketManager
     /**
      * 获取指定空间的相关信息
      *
-     * @return string[] 包含空间信息
+     * @param string $bucket 空间名称
+     * @return array
      */
     public function bucketInfo($bucket)
     {
@@ -118,12 +123,10 @@ final class BucketManager
 
     /**
      * 获取指定zone的空间信息列表
-     * 在Region 未指定且Global 不为 true 时(包含未指定的情况,下同)，返回用户的所有空间。
-     * 在指定了 region 参数且 global 不为 true 时，只列举非全局空间。
-     * shared 不指定shared参数或指定shared为rw或false时，返回包含具有读写权限空间，
-     * 指定shared为rd或true时，返回包含具有读权限空间。
-     * fs：如果为 true，会返回每个空间当前的文件数和存储量（实时数据）。
-     * @return string[] 包含空间信息
+     * @param string $region 区域
+     * @param string $shared 指定共享空间，rw：读写权限空间，rd：读权限空间
+     * @param string $fs 如果为 true，会返回每个空间当前的文件数和存储量（实时数据）
+     * @return array
      */
     public function bucketInfos($region = null, $shared = 'false', $fs = 'false')
     {
@@ -205,11 +208,11 @@ final class BucketManager
     )
     {
         $query = array('bucket' => $bucket);
-        \EasySwoole\Oss\QiNiu\setWithoutEmpty($query, 'prefix', $prefix);
-        \EasySwoole\Oss\QiNiu\setWithoutEmpty($query, 'marker', $marker);
-        \EasySwoole\Oss\QiNiu\setWithoutEmpty($query, 'limit', $limit);
-        \EasySwoole\Oss\QiNiu\setWithoutEmpty($query, 'delimiter', $delimiter);
-        \EasySwoole\Oss\QiNiu\setWithoutEmpty($query, 'skipconfirm', $skipconfirm);
+        Util::setWithoutEmpty($query, 'prefix', $prefix);
+        Util::setWithoutEmpty($query, 'marker', $marker);
+        Util::setWithoutEmpty($query, 'limit', $limit);
+        Util::setWithoutEmpty($query, 'delimiter', $delimiter);
+        Util::setWithoutEmpty($query, 'skipconfirm', $skipconfirm);
         $path = '/v2/list?' . http_build_query($query);
         $url = $this->getRsfHost() . $path;
         $headers = $this->auth->authorization($url, null, 'application/x-www-form-urlencoded');
@@ -262,6 +265,7 @@ final class BucketManager
     )
     {
         $path = '/rules/add';
+        $params = [];
         if ($bucket) {
             $params['bucket'] = $bucket;
         }
@@ -304,6 +308,7 @@ final class BucketManager
     )
     {
         $path = '/rules/update';
+        $params = [];
         if ($bucket) {
             $params['bucket'] = $bucket;
         }
@@ -348,6 +353,7 @@ final class BucketManager
     public function deleteBucketLifecycleRule($bucket, $name)
     {
         $path = '/rules/delete';
+        $params = [];
         if ($bucket) {
             $params['bucket'] = $bucket;
         }
@@ -387,29 +393,30 @@ final class BucketManager
     )
     {
         $path = '/events/add';
-        if ($bucket) {
+        $params = [];
+        if (!empty($bucket)) {
             $params['bucket'] = $bucket;
         }
-        if ($name) {
+        if (!empty($name)) {
             $params['name'] = $name;
         }
         if ($prefix) {
             $params['prefix'] = $prefix;
         }
-        if ($suffix) {
+        if (!empty($suffix)) {
             $params['suffix'] = $suffix;
         }
-        if ($callbackURL) {
+        if (!empty($callbackURL)) {
             $params['callbackURL'] = $callbackURL;
         }
-        if ($access_key) {
+        if (!empty($access_key)) {
             $params['access_key'] = $access_key;
         }
-        if ($host) {
+        if (!empty($host)) {
             $params['host'] = $host;
         }
         $data = http_build_query($params);
-        if ($event) {
+        if (!empty($event)) {
             $eventpath = "";
             foreach ($event as $key => $value) {
                 $eventpath .= "&event=$value";
@@ -448,28 +455,29 @@ final class BucketManager
     )
     {
         $path = '/events/update';
-        if ($bucket) {
+        $params = [];
+        if (!empty($bucket)) {
             $params['bucket'] = $bucket;
         }
-        if ($name) {
+        if (!empty($name)) {
             $params['name'] = $name;
         }
-        if ($prefix) {
+        if (!empty($prefix)) {
             $params['prefix'] = $prefix;
         }
-        if ($suffix) {
+        if (!empty($suffix)) {
             $params['suffix'] = $suffix;
         }
-        if ($event) {
+        if (!empty($event)) {
             $params['event'] = $event;
         }
-        if ($callbackURL) {
+        if (!empty($callbackURL)) {
             $params['callbackURL'] = $callbackURL;
         }
-        if ($access_key) {
+        if (!empty($access_key)) {
             $params['access_key'] = $access_key;
         }
-        if ($host) {
+        if (!empty($host)) {
             $params['host'] = $host;
         }
         $data = http_build_query($params);
@@ -501,6 +509,7 @@ final class BucketManager
     public function deleteBucketEvent($bucket, $name)
     {
         $path = '/events/delete';
+        $params = [];
         if ($bucket) {
             $params['bucket'] = $bucket;
         }
@@ -602,7 +611,7 @@ final class BucketManager
      */
     public function putBucketAccessMode($bucket, $private)
     {
-        $path = '/bucket/' . $bucket . '/private/' . $private;
+        $path = "/private?bucket=$bucket&private=$private";
         $info = $this->ucPost($path, null);
         return $info;
     }
@@ -858,6 +867,90 @@ final class BucketManager
         return $this->post($url, null);
     }
 
+
+    /**
+     * 从指定URL异步抓取资源，并将该资源存储到指定空间中
+     *
+     * @param string $url 需要抓取的url
+     * @param string $bucket 所在区域的bucket
+     * @param string $host 从指定url下载数据时使用的Host
+     * @param string $key 文件存储的key
+     * @param string $md5 文件md5
+     * @param string $etag 文件etag
+     * @param string $callbackurl 回调URL
+     * @param string $callbackbody 回调Body
+     * @param string $callbackbodytype 回调Body内容类型,默认为"application/x-www-form-urlencoded"
+     * @param string $callbackhost 回调时使用的Host
+     * @param int $file_type 存储文件类型 0:标准存储(默认),1:低频存储,2:归档存储
+     * @param bool $ignore_same_key 如果空间中已经存在同名文件则放弃本次抓取
+     * @return array
+     * @link  https://developer.qiniu.com/kodo/api/4097/asynch-fetch
+     */
+    public function asynchFetch(
+        $url,
+        $bucket,
+        $host = null,
+        $key = null,
+        $md5 = null,
+        $etag = null,
+        $callbackurl = null,
+        $callbackbody = null,
+        $callbackbodytype = 'application/x-www-form-urlencoded',
+        $callbackhost = null,
+        $file_type = 0,
+        $ignore_same_key = false
+    ) {
+        $path = '/sisyphus/fetch';
+
+        $params = array('url' => $url, 'bucket' => $bucket);
+        Util::setWithoutEmpty($params, 'host', $host);
+        Util::setWithoutEmpty($params, 'key', $key);
+        Util::setWithoutEmpty($params, 'md5', $md5);
+        Util::setWithoutEmpty($params, 'etag', $etag);
+        Util::setWithoutEmpty($params, 'callbackurl', $callbackurl);
+        Util::setWithoutEmpty($params, 'callbackbody', $callbackbody);
+        Util::setWithoutEmpty($params, 'callbackbodytype', $callbackbodytype);
+        Util::setWithoutEmpty($params, 'callbackhost', $callbackhost);
+        Util::setWithoutEmpty($params, 'file_type', $file_type);
+        Util::setWithoutEmpty($params, 'ignore_same_key', $ignore_same_key);
+        $data = json_encode($params);
+
+        $ak = $this->auth->getAccessKey();
+        $apiHost = $this->config->getApiHost($ak, $bucket);
+        $url = $apiHost . $path;
+
+        return $this->postV2($url, $data);
+    }
+
+
+    /**
+     * 查询异步第三方资源抓取任务状态
+     *
+     * @param string $zone
+     * @param string $id
+     * @return array
+     * @link  https://developer.qiniu.com/kodo/api/4097/asynch-fetch
+     */
+    public function asynchFetchStatus($zone, $id)
+    {
+        $scheme = "http://";
+
+        if ($this->config->useHTTPS === true) {
+            $scheme = "https://";
+        }
+
+        $url = $scheme . "api-" . $zone . ".qiniu.com/sisyphus/fetch?id=" . $id;
+
+        $response = $this->getV2($url);
+
+        if (!$response->ok()) {
+            print("statusCode: " . $response->statusCode);
+            return array(null, new Error($url, $response));
+        }
+        return array($response->json(), null);
+    }
+
+
     /**
      * 从镜像源站抓取资源到空间中，如果空间中已经存在，则覆盖该资源
      *
@@ -923,7 +1016,7 @@ final class BucketManager
     private function getRsfHost()
     {
         $scheme = "http://";
-        if ($this->config->useHTTPS == true) {
+        if ($this->config->useHTTPS === true) {
             $scheme = "https://";
         }
         return $scheme . Config::RSF_HOST;
@@ -932,7 +1025,7 @@ final class BucketManager
     private function getRsHost()
     {
         $scheme = "http://";
-        if ($this->config->useHTTPS == true) {
+        if ($this->config->useHTTPS === true) {
             $scheme = "https://";
         }
         return $scheme . Config::RS_HOST;
@@ -941,7 +1034,7 @@ final class BucketManager
     private function getApiHost()
     {
         $scheme = "http://";
-        if ($this->config->useHTTPS == true) {
+        if ($this->config->useHTTPS === true) {
             $scheme = "https://";
         }
         return $scheme . Config::API_HOST;
@@ -950,7 +1043,7 @@ final class BucketManager
     private function getUcHost()
     {
         $scheme = "http://";
-        if ($this->config->useHTTPS == true) {
+        if ($this->config->useHTTPS === true) {
             $scheme = "https://";
         }
         return $scheme . Config::UC_HOST;
@@ -1000,6 +1093,12 @@ final class BucketManager
             return array(null, new Error($url, $ret));
         }
         return array($ret->json(), null);
+    }
+
+    private function getV2($url)
+    {
+        $headers = $this->auth->authorizationV2($url, 'GET');
+        return Client::get($url, $headers);
     }
 
     private function post($url, $body)
@@ -1073,7 +1172,7 @@ final class BucketManager
     {
         $data = array();
         foreach ($key_mime_pairs as $key => $mime) {
-            array_push($data, '/chgm/' .  Util::entry($bucket, $key) . '/mime/' . base64_encode($mime));
+            array_push($data, '/chgm/' . Util::entry($bucket, $key) . '/mime/' . base64_encode($mime));
         }
         return $data;
     }
@@ -1082,7 +1181,7 @@ final class BucketManager
     {
         $data = array();
         foreach ($key_type_pairs as $key => $type) {
-            array_push($data, '/chtype/' .  Util::entry($bucket, $key) . '/type/' . $type);
+            array_push($data, '/chtype/' . Util::entry($bucket, $key) . '/type/' . $type);
         }
         return $data;
     }

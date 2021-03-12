@@ -23,7 +23,7 @@ class QiNiuBaseTestCase extends TestCase
      */
     protected $testAuth;
 
-    protected function setUp()
+    protected function setUp():void
     {
         $this->testAuth = new Auth(QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
 

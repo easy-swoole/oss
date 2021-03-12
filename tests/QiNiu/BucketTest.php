@@ -13,8 +13,9 @@ class BucketTest extends QiNiuBaseTestCase
      * @var $bucketManager BucketManager
      */
     protected $dummyBucketManager;
+    protected $customCallbackURL;
 
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -22,13 +23,14 @@ class BucketTest extends QiNiuBaseTestCase
         $this->bucketManager = new BucketManager($testAuth);
         $dummyAuth = $this->dummyAuth;
         $this->dummyBucketManager = new BucketManager($dummyAuth);
+        $this->customCallbackURL = "https://qiniu.timhbw.com/notify/callback";
     }
 
     public function testBuckets()
     {
 
         list($list, $error) = $this->bucketManager->buckets();
-//        var_dump($error);
+        var_dump($list);
         $this->assertTrue(in_array($this->bucketName, $list));
         $this->assertNull($error);
 
@@ -38,12 +40,143 @@ class BucketTest extends QiNiuBaseTestCase
         $this->assertNotNull($error->message());
     }
 
+    public function testListbuckets()
+    {
+        list($ret, $error) = $this->bucketManager->listbuckets('z0');
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testCreateBucket()
+    {
+        list($ret, $error) = $this->bucketManager->createBucket("phpsdk-ci-test");
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testDeleteBucket()
+    {
+        list($ret, $error) = $this->bucketManager->deleteBucket('phpsdk-ci-test');
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testDomains()
+    {
+        list($ret, $error) = $this->bucketManager->domains($this->bucketName);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testBucketInfo()
+    {
+        list($ret, $error) = $this->bucketManager->bucketInfo($this->bucketName);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testBucketInfos()
+    {
+        list($ret, $error) = $this->bucketManager->bucketInfos('z0');
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+
+
+
     public function testList()
     {
         list($ret, $error) = $this->bucketManager->listFiles($this->bucketName, null, null, 10);
         $this->assertNotNull($ret['items'][0]);
 //        $this->assertNotNull($ret['marker']);
     }
+
+
+    public function testListFilesv2()
+    {
+        list($ret, $error) = $this->bucketManager->listFilesv2($this->bucketName, null, null, 10);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testBucketLifecycleRule()
+    {
+        list($ret, $error) = $this->bucketManager->bucketLifecycleRule($this->bucketName, 'demo', 'test', 80, 70);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testGetbucketLifecycleRule()
+    {
+        list($ret, $error) = $this->bucketManager->getBucketLifecycleRules($this->bucketName);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testUpdatebucketLifecycleRule()
+    {
+        list($ret, $error) = $this->bucketManager->updateBucketLifecycleRule(
+            $this->bucketName,
+            'demo',
+            'testupdate',
+            80,
+            70
+        );
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testDeleteBucketLifecycleRule()
+    {
+        list($ret, $error) = $this->bucketManager->deleteBucketLifecycleRule($this->bucketName, 'demo');
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testPutBucketEvent()
+    {
+        list($ret, $error) = $this->bucketManager->putBucketEvent(
+            $this->bucketName,
+            'bucketevent',
+            'test',
+            'img',
+            array('copy'),
+            $this->customCallbackURL
+        );
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testUpdateBucketEvent()
+    {
+        list($ret, $error) = $this->bucketManager->updateBucketEvent(
+            $this->bucketName,
+            'bucketevent',
+            'test',
+            'video',
+            array('copy'),
+            $this->customCallbackURL
+        );
+        var_dump($error);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testGetBucketEvent()
+    {
+        list($ret, $error) = $this->bucketManager->getBucketEvents($this->bucketName);
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
+    public function testDeleteBucketEvent()
+    {
+        list($ret, $error) = $this->bucketManager->deleteBucketEvent($this->bucketName, 'bucketevent');
+        $this->assertNotNull($ret);
+        $this->assertNull($error);
+    }
+
 
     public function testStat()
     {
@@ -160,6 +293,37 @@ class BucketTest extends QiNiuBaseTestCase
         $this->assertNull($error);
     }
 
+
+    public function testAsynchFetch()
+    {
+        list($ret, $error) = $this->bucketManager->asynchFetch(
+            'http://devtools.qiniu.com/qiniu.png',
+            $this->bucketName,
+            null,
+            'qiniu.png'
+        );
+        $this->assertArrayHasKey('id', $ret);
+        $this->assertNull($error);
+
+        list($ret, $error) = $this->bucketManager->asynchFetch(
+            'http://devtools.qiniu.com/qiniu.png',
+            $this->bucketName,
+            null,
+            ''
+        );
+        $this->assertArrayHasKey('id', $ret);
+        $this->assertNull($error);
+
+        list($ret, $error) = $this->bucketManager->asynchFetch(
+            'http://devtools.qiniu.com/qiniu.png',
+            $this->bucketName
+        );
+        $this->assertArrayHasKey('id', $ret);
+        $this->assertNull($error);
+    }
+
+
+
     public function testBatchCopy()
     {
         $key = 'copyto' . rand();
@@ -222,5 +386,66 @@ class BucketTest extends QiNiuBaseTestCase
         $this->bucketManager->copy($this->bucketName, $this->key, $this->bucketName, $key);
         $err = $this->bucketManager->deleteAfterDays($this->bucketName, $key, 1);
         $this->assertEquals(null, $err);
+    }
+
+
+    public function testGetCorsRules()
+    {
+        list($ret, $err) = $this->bucketManager->getCorsRules($this->bucketName);
+        $this->assertNull($err);
+    }
+
+    public function testPutBucketAccessStyleMode()
+    {
+        list($ret, $err) = $this->bucketManager->putBucketAccessStyleMode($this->bucketName, 0);
+        $this->assertNull($err);
+    }
+
+    public function testPutBucketAccessMode()
+    {
+        list($ret, $err) = $this->bucketManager->putBucketAccessMode($this->bucketName, 0);
+        $this->assertNull($err);
+    }
+
+    public function testPutReferAntiLeech()
+    {
+        list($ret, $err) = $this->bucketManager->putReferAntiLeech($this->bucketName, 0, "1", "*");
+        $this->assertNull($err);
+    }
+
+    public function testPutBucketMaxAge()
+    {
+        list($ret, $err) = $this->bucketManager->putBucketMaxAge($this->bucketName, 31536000);
+        $this->assertNull($err);
+    }
+
+    public function testPutBucketQuota()
+    {
+        list($ret, $err) = $this->bucketManager->putBucketQuota($this->bucketName, -1, -1);
+        $this->assertNull($err);
+    }
+
+    public function testGetBucketQuota()
+    {
+        list($ret, $err) = $this->bucketManager->getBucketQuota($this->bucketName);
+        $this->assertNull($err);
+    }
+
+    public function testChangeType()
+    {
+        list($ret, $err) = $this->bucketManager->changeType($this->bucketName, $this->key, 0);
+        $this->assertNull($err);
+
+        list($ret, $err) = $this->bucketManager->changeType($this->bucketName, $this->key, 1);
+        $this->assertNull($err);
+    }
+
+    public function testChangeStatus()
+    {
+        list($ret, $err) = $this->bucketManager->changeStatus($this->bucketName, $this->key, 1);
+        $this->assertNull($err);
+
+        list($ret, $err) = $this->bucketManager->changeStatus($this->bucketName, $this->key, 0);
+        $this->assertNull($err);
     }
 }

@@ -10,6 +10,40 @@ class Config extends SplBean
     protected $accessKeySecret;//key
     protected $endpoint;//point
     protected $isCName = false;//是否对Bucket做了域名绑定，并且Endpoint参数填写的是自己的域名
+    protected $timeout = 0;
+    protected $connectionTimeout = 0;
+
+    /**
+     * @return float|int
+     */
+    public function getTimeout()
+    {
+        return $this->timeout;
+    }
+
+    /**
+     * @param float|int $timeout
+     */
+    public function setTimeout($timeout): void
+    {
+        $this->timeout = $timeout;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getConnectionTimeout()
+    {
+        return $this->connectionTimeout;
+    }
+
+    /**
+     * @param float|int $connectionTimeout
+     */
+    public function setConnectionTimeout($connectionTimeout): void
+    {
+        $this->connectionTimeout = $connectionTimeout;
+    }
 
     /**
      * @return mixed

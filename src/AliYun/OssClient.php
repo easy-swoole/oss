@@ -106,6 +106,8 @@ class OssClient
         $this->requestProxy = $requestProxy;
         $this->securityToken = $securityToken;
         $this->hostname = $this->checkEndpoint();
+        $this->timeout = $this->config->getTimeout();
+        $this->connectTimeout = $this->config->getConnectionTimeout();
     }
 
     ##############################请求方法######################################

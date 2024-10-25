@@ -182,7 +182,7 @@ final class Auth
         }
 
         $sign = $this->sign($toSignStr);
-        $auth = 'EasySwoole\Oss\QiNiu ' . $sign;
+        $auth = 'Qiniu ' . $sign;
         return array('Authorization' => $auth);
     }
 }

@@ -1714,6 +1714,7 @@ class OssClient
         $options[OssConst::OSS_METHOD] = OssConst::OSS_HTTP_PUT;
         $options[OssConst::OSS_OBJECT] = $object . '/';
         $options[OssConst::OSS_CONTENT_LENGTH] = array(OssConst::OSS_CONTENT_LENGTH => 0);
+        $options[OssConst::OSS_CONTENT] = '';
         $response = $this->auth($options);
         $result = new PutSetDeleteResult($response);
         return $result->getData();

@@ -10,6 +10,7 @@ class Signature {
     public function __construct($accessKey, $secretKey) {
         $this->accessKey = $accessKey;
         $this->secretKey = $secretKey;
+        date_default_timezone_set("PRC");
     }
     public function __destruct() {
     }

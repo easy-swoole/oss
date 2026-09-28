@@ -94,9 +94,13 @@ abstract class Result
         } else {
             $httpStatus = strval($this->rawResponse->getStatusCode());
             $requestId = strval($this->getRequestId());
+            $body = $this->rawResponse->getBody();
+            if(empty($requestId)){
+                $xml = simplexml_load_string($body);
+                $requestId = $xml->RequestId;
+            }
             $code = $this->retrieveErrorCode($this->rawResponse->getBody());
             $message = $this->retrieveErrorMessage($this->rawResponse->getBody());
-            $body = $this->rawResponse->getBody();
             $details = array(
                 'status'     => $httpStatus,
                 'request-id' => $requestId,

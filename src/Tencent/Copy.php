@@ -2,9 +2,6 @@
 
 namespace EasySwoole\Oss\Tencent;
 
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Pool;
-
 class Copy
 {
     /**
@@ -22,125 +19,74 @@ class Copy
     private $copySource;
     private $options;
     private $partSize;
-    private $parts=[];
     private $size;
-    private $commandList = [];
-    private $requestList = [];
+    private int $retry;
 
     public function __construct($client, $source, $options = array())
     {
-        $minPartSize = $options['PartSize'];
-        unset($options['PartSize']);
+        $this->partSize = $this->calculatePartSize($options['PartSize'], $source['ContentLength']);
+        $this->retry = max(1, (int)($options['Retry'] ?? 5));
+        unset($options['PartSize'], $options['Retry'], $options['Concurrency']);
         $this->client = $client;
-        $this->copySource = $source;
+        $this->copySource = $source['Path'];
+        $this->size = (int)$source['ContentLength'];
         $this->options = $options;
-        $this->size = $source['ContentLength'];
-        unset($source['ContentLength']);
-        $this->partSize = $this->calculatePartSize($minPartSize);
-        $this->concurrency = isset($options['Concurrency']) ? $options['Concurrency'] : 10;
-        $this->retry = isset($options['Retry']) ? $options['Retry'] : 5;
     }
 
     public function copy()
     {
         $uploadId = $this->initiateMultipartUpload();
-        for ($i = 0; $i < $this->retry; $i += 1) {
-            $rt = $this->uploadParts($uploadId);
-            if ($rt == 0) {
-                break;
+        $params = [
+            'Bucket' => $this->options['Bucket'],
+            'Key' => $this->options['Key'],
+            'UploadId' => $uploadId,
+        ];
+        try {
+            return $this->client->completeMultipartUpload($params + ['Parts' => $this->uploadParts($uploadId)]);
+        } catch (\Throwable $failure) {
+            try {
+                $this->client->abortMultipartUpload($params);
+            } catch (\Throwable) {
+                // Preserve the original copy failure.
             }
-            sleep(1 << $i);
+            throw $failure;
         }
-        foreach ($this->parts as $key => $row) {
-            $num1[$key] = $row ['PartNumber'];
-            $num2[$key] = $row ['ETag'];
-        }
-        array_multisort($num1, SORT_ASC, $num2, SORT_ASC, $this->parts);
-        return $this->client->completeMultipartUpload(array(
-                'Bucket'   => $this->options['Bucket'],
-                'Key'      => $this->options['Key'],
-                'UploadId' => $uploadId,
-                'Parts'    => $this->parts)
-        );
     }
 
     public function uploadParts($uploadId)
     {
-        $copyRequests = function ($uploadId) {
-            $offset = 0;
-            $partNumber = 1;
-            $partSize = $this->partSize;
-            $finishedNum = 0;
-            $this->parts = array();
-            for ($index = 1; ; $index++) {
-                if ($offset + $partSize >= $this->size) {
-                    $partSize = $this->size - $offset;
-                }
-                $copySourcePath = $this->copySource['Bucket'] . '.cos.' . $this->copySource['Region'] .
-                    ".myqcloud.com/" . $this->copySource['Key'] . "?versionId=" . $this->copySource['VersionId'];
-
-                $params = array(
-                    'Bucket'          => $this->options['Bucket'],
-                    'Key'             => $this->options['Key'],
-                    'UploadId'        => $uploadId,
-                    'PartNumber'      => $partNumber,
-                    'CopySource'      => $copySourcePath,
-                    'CopySourceRange' => 'bytes=' . ((string)$offset) . '-' . (string)($offset + $partSize - 1),
-                );
-                if (!isset($this->parts[$partNumber])) {
-                    $command = $this->client->getCommand('uploadPartCopy', $params);
-                    $request = $this->client->commandToRequestTransformer($command);
-                    $this->commandList[$index] = $command;
-                    $this->requestList[$index] = $request;
-                    yield $request;
-                }
-                ++$partNumber;
-                $offset += $partSize;
-                if ($this->size == $offset) {
+        $parts = [];
+        for ($offset = 0, $number = 1; $offset < $this->size; $offset += $this->partSize, ++$number) {
+            $end = min($offset + $this->partSize, $this->size) - 1;
+            $params = [
+                'Bucket' => $this->options['Bucket'],
+                'Key' => $this->options['Key'],
+                'UploadId' => $uploadId,
+                'PartNumber' => $number,
+                'CopySource' => $this->copySource,
+                'CopySourceRange' => "bytes=$offset-$end",
+            ];
+            for ($attempt = 1; ; ++$attempt) {
+                try {
+                    $response = $this->client->uploadPartCopy($params + $this->options);
+                    if (empty($response['ETag'])) {
+                        throw new \RuntimeException("COS returned no ETag for copied part $number");
+                    }
+                    $parts[] = ['PartNumber' => $number, 'ETag' => $response['ETag']];
                     break;
-                }
-            }
-        };
-        $csp = new \EasySwoole\Component\Csp();
-
-        for ($i = 0; $i < $this->concurrency; $i++) {
-            $csp->add('t' . $i, function () use ($uploadId, $copyRequests) {
-                \co::sleep(0.1);
-                $copyRequests($uploadId);
-                return 't2 result';
-            });
-        }
-
-        [
-            'fulfilled' => function ($response, $index) {
-                $index = $index + 1;
-                $response = $this->client->responseToResultTransformer($response, $this->requestList[$index], $this->commandList[$index]);
-                $part = array('PartNumber' => $index, 'ETag' => $response['ETag']);
-                $this->parts[$index] = $part;
-            },
-
-            'rejected' => function ($reason, $index) {
-                $retry = 2;
-                $index += 1;
-                for ($i = 1; $i <= $retry; $i++) {
-                    try {
-                        $rt = $this->client->execute($this->commandList[$index]);
-                        $part = array('PartNumber' => $index, 'ETag' => $rt['ETag']);
-                        $this->parts[$index] = $part;
-                    } catch (\Exception $e) {
-                        if ($i == $retry) {
-                            throw($e);
-                        }
+                } catch (\Exception $failure) {
+                    if ($attempt >= $this->retry) {
+                        throw $failure;
                     }
                 }
-            },
-        ];
+            }
+        }
+        return $parts;
     }
 
-
-    private function calculatePartSize($minPartSize)
+    private function calculatePartSize($minPartSize, $size)
     {
-        $partSize = intval(ceil(($this->size / self::MAX_PARTS)));
+        $partSize = intval(ceil(($size / self::MAX_PARTS)));
         $partSize = max($minPartSize, $partSize);
         $partSize = min($partSize, self::MAX_PART_SIZE);
         $partSize = max($partSize, self::MIN_PART_SIZE);

@@ -85,45 +85,41 @@ final class UploadManager
         $filePath,
         $params = null,
         $mime = 'application/octet-stream',
-        $checkCrc = false
+        $checkCrc = false,
+        $resumeFile = null,
+        $version = 'v1',
+        $partSize = Config::BLOCK_SIZE
     ) {
     
         $file = fopen($filePath, 'rb');
         if ($file === false) {
             throw new \Exception("file can not open", 1);
         }
-        $params = self::trimParams($params);
-        $stat = fstat($file);
-        $size = $stat['size'];
-        if ($size <= Config::BLOCK_SIZE) {
-            $data = fread($file, $size);
-            fclose($file);
-            if ($data === false) {
-                throw new \Exception("file can not read", 1);
+        try {
+            if (!in_array($version, ['v1', 'v2'], true)) {
+                throw new \InvalidArgumentException('Unsupported Qiniu multipart upload version');
             }
-            return FormUploader::put(
-                $upToken,
-                $key,
-                $data,
-                $this->config,
-                $params,
-                $mime,
-                basename($filePath)
-            );
-        }
+            $params = self::trimParams($params);
+            $size = fstat($file)['size'];
+            if ($size <= Config::BLOCK_SIZE) {
+                $data = $size === 0 ? '' : fread($file, $size);
+                if ($data === false || strlen($data) !== $size) {
+                    throw new \RuntimeException('Could not read the complete upload file');
+                }
+                return FormUploader::put($upToken, $key, $data, $this->config, $params, $mime, basename($filePath), $checkCrc);
+            }
 
-        $up = new ResumeUploader(
-            $upToken,
-            $key,
-            $file,
-            $size,
-            $params,
-            $mime,
-            $this->config
-        );
-        $ret = $up->upload(basename($filePath));
-        fclose($file);
-        return $ret;
+            if ($version === 'v2') {
+                $uploader = new MultipartUploader($this->config);
+                return $uploader->upload($upToken, $key, $file, $size, basename($filePath), $params ?? [], $mime, $checkCrc, $resumeFile, $partSize);
+            }
+            $uploader = new ResumeUploader($upToken, $key, $file, $size, $params, $mime, $this->config, $checkCrc, $resumeFile);
+            return $uploader->upload(basename($filePath));
+        } catch (\EasySwoole\Oss\QiNiu\RegionQueryException $error) {
+            return [null, $error->getError()];
+        } finally {
+            fclose($file);
+        }
     }
 
     public static function trimParams($params)
@@ -135,8 +131,8 @@ final class UploadManager
         foreach ($params as $k => $v) {
             $pos1 = strpos($k, 'x:');
             $pos2 = strpos($k, 'x-qn-meta-');
-            if (($pos1 === 0 || $pos2 === 0) && !empty($v)) {
-                $ret[$k] = $v;
+            if (($pos1 === 0 || $pos2 === 0) && (is_string($v) || is_int($v) || is_float($v))) {
+                $ret[$k] = (string)$v;
             }
         }
         return $ret;

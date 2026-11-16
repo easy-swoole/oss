@@ -1015,9 +1015,9 @@ class OssClient
         $resource = '/' . $bucket . '/' . $channelName;
 
         $string_to_sign = $expires . "\n" . $cano_params . $resource;
-        $signature = base64_encode(hash_hmac('sha1', $string_to_sign, $this->accessKeySecret, true));
+        $signature = base64_encode(hash_hmac('sha1', $string_to_sign, $this->config->getAccessKeySecret(), true));
 
-        $query_items[] = 'OSSAccessKeyId=' . rawurlencode($this->accessKeyId);
+        $query_items[] = 'OSSAccessKeyId=' . rawurlencode($this->config->getAccessKeyId());
         $query_items[] = 'Expires=' . rawurlencode($expires);
         $query_items[] = 'Signature=' . rawurlencode($signature);
 
@@ -1051,9 +1051,9 @@ class OssClient
         $resource = '/' . $bucket . '/' . $channelName;
 
         $string_to_sign = $expiration . "\n" . $cano_params . $resource;
-        $signature = base64_encode(hash_hmac('sha1', $string_to_sign, $this->accessKeySecret, true));
+        $signature = base64_encode(hash_hmac('sha1', $string_to_sign, $this->config->getAccessKeySecret(), true));
 
-        $query_items[] = 'OSSAccessKeyId=' . rawurlencode($this->accessKeyId);
+        $query_items[] = 'OSSAccessKeyId=' . rawurlencode($this->config->getAccessKeyId());
         $query_items[] = 'Expires=' . rawurlencode($expiration);
         $query_items[] = 'Signature=' . rawurlencode($signature);
 
@@ -2650,8 +2650,6 @@ class OssClient
 //        }
         $timeout = time() + $timeout;
         $options[OssConst::OSS_PREAUTH] = $timeout;
-        $options[OssConst::OSS_DATE] = $timeout;
-        $this->setSignStsInUrl(true);
         return $this->auth($options);
     }
 
@@ -2681,8 +2679,6 @@ class OssClient
             $options[OssConst::OSS_CONTENT_TYPE] = '';
         }
         $options[OssConst::OSS_PREAUTH] = $expiration;
-        $options[OssConst::OSS_DATE] = $expiration;
-        $this->setSignStsInUrl(true);
         return $this->auth($options);
     }
 
@@ -2711,14 +2707,32 @@ class OssClient
         //验证ACL
         $this->authpreCheckAcl($options);
 
-        //签名类
-        $signature = new Signature($config);
-        $queryStringParams = $signature->generateSignableQueryStringParam($options, $this->enableStsInUrl, $this->securityToken);
-        //get参数拼接
-        $signableQueryString = OssUtil::toQueryString($queryStringParams);
-        //请求链接生成以及返回get字符串
-        list($conjunction, $signableQueryString) = $this->generateRequestUrl($options, $signableQueryString);
-        //如果get参数不为空,则增加$conjunction拼接符
+        $presign = isset($options[OssConst::OSS_PREAUTH]);
+        $query = (new Signature($config))->generateSignableQueryStringParam(
+            $options,
+            !$presign && $this->enableStsInUrl,
+            $this->securityToken
+        );
+        $this->generateRequestUrl($options, OssUtil::toQueryString($query));
+        $headers = (new RequestHeaders($config))->generateHeaders(
+            $options,
+            $this->generateHostname($options[OssConst::OSS_BUCKET]),
+            $this
+        );
+        $headers = array_filter(
+            array_map(static fn($value) => str_replace(["\r", "\n"], '', $value), $headers),
+            static fn($value, $name) => $value !== '' || $name === OssConst::OSS_ACCEPT_ENCODING,
+            ARRAY_FILTER_USE_BOTH
+        );
+        $signer = new SignatureV4($config);
+        $timestamp = time();
+        if ($presign) {
+            return (int)$options[OssConst::OSS_PREAUTH] === 0
+                ? $this->requestUrl
+                : $signer->presign($this->requestUrl, $options, $headers, $this->securityToken, $timestamp);
+        }
+        $stringToSign = $signer->sign($this->requestUrl, $options, $headers, $timestamp);
+
         //创建请求
         $httpClient = new HttpClient();
         $httpClient->setTimeout($this->timeout);;
@@ -2739,24 +2753,7 @@ class OssClient
             $httpClient->setProxyHttp(...$this->requestProxy);
         }
 
-        //组装headers
-        $headers = new RequestHeaders($config);
-        // 获得当次请求使用的hostname，如果是公共域名或者专有域名，bucket拼在前面构成三级域名
-        $hostname = $this->generateHostname($options[OssConst::OSS_BUCKET]);
-        $headers = $headers->generateHeaders($options, $hostname, $this);
         $this->setHttpClientHeaders($httpClient, $headers);
-        //签名字符串
-        $stringToSign = $signature->getStringToSign($signableQueryString, $options, $headers, $this->hostType);
-        //对?后面的要签名的string字母序排序
-        $stringToSignOrdered = $signature->stringToSignSorted($stringToSign);
-        $signatureStr = $signature->getSign($stringToSignOrdered);
-        $authorization = 'OSS ' . $this->config->getAccessKeyId() . ':' . $signatureStr;
-        $httpClient->setHeader('Authorization', $authorization, false);
-
-        //如果是预检url,则直接返回
-        if (($url = $this->preAuth($options, $signatureStr, $conjunction)) !== null) {
-            return $url;
-        }
 
         //请求数据并处理
         $redirects = 0;
@@ -3172,7 +3169,7 @@ class OssClient
         }
         // resource_uri + object
         if (isset($options[OssConst::OSS_OBJECT]) && '/' !== $options[OssConst::OSS_OBJECT]) {
-            $resourceUri .= '/' . str_replace(array('%2F', '%25'), array('/', '%'), rawurlencode($options[OssConst::OSS_OBJECT]));
+            $resourceUri .= '/' . str_replace('%2F', '/', rawurlencode($options[OssConst::OSS_OBJECT]));
         }
         // resource_uri + sub_resource
         $conjunction = '?';
@@ -3227,7 +3224,6 @@ class OssClient
         $scheme = $this->useSSL ? 'https://' : 'http://';
         //请求地址
         $this->requestUrl = $scheme . $hostname . $resourceUri . $signableQueryString . $nonSignableResource;
-        return [$conjunction, $signableQueryString];
     }
 
     /**
@@ -3318,28 +3314,6 @@ class OssClient
     {
         if (isset($options[OssConst::OSS_CONTENT])) {
             $httpClient->getClient()->setData($options[OssConst::OSS_CONTENT]);
-        }
-    }
-
-    /**
-     * 判断是否为auth预检,不实际请求
-     * preAuth
-     * @param $options
-     * @param $signature
-     * @param $conjunction
-     * @return string|null
-     * @author Tioncico
-     * Time: 16:28
-     */
-    protected function preAuth($options, $signature, $conjunction)
-    {
-        if (isset($options[OssConst::OSS_PREAUTH]) && (integer)$options[OssConst::OSS_PREAUTH] > 0) {
-            $signedUrl = $this->requestUrl . $conjunction . OssConst::OSS_URL_ACCESS_KEY_ID . '=' . rawurlencode($this->config->getAccessKeyId()) . '&' . OssConst::OSS_URL_EXPIRES . '=' . $options[OssConst::OSS_PREAUTH] . '&' . OssConst::OSS_URL_SIGNATURE . '=' . rawurlencode($signature);
-            return $signedUrl;
-        } elseif (isset($options[OssConst::OSS_PREAUTH])) {
-            return $this->requestUrl;
-        } else {
-            return null;
         }
     }
 

@@ -31,27 +31,20 @@ final class Client
     public static function post($url, $body, array $headers = array())
     {
         $httpClient = new HttpClient($url);
-        $httpClient->setHeaders($headers,true,false);
-        $httpClient->getClient()->setData($body);
-        if (!isset($headers['Content-Type'])){
-            $httpClient->setHeader('Content-Type','application/x-www-form-urlencoded');
-        }
+        $headers = array_change_key_case($headers) + ['content-type' => 'application/x-www-form-urlencoded'];
+        $httpClient->setHeaders($headers, true, false);
 
         self::clientHandel($httpClient);
-        $response = $httpClient->post();
+        $response = $httpClient->post($body);
         $response = new \EasySwoole\Oss\QiNiu\Http\Response($response);
         return $response;
     }
 
-    public static function PUT($url, $body, array $headers = array())
+    public static function put($url, $body, array $headers = array())
     {
         $httpClient = new HttpClient($url);
-        $httpClient->setHeaders($headers,true,false);
         self::clientHandel($httpClient);
-        $httpClient->getClient()->setData($body);
-        $response = $httpClient->delete();
-        $response = new \EasySwoole\Oss\QiNiu\Http\Response($response);
-        return $response;
+        return new Response($httpClient->put($body, $headers));
     }
 
     public static function multipartPost(
@@ -85,18 +78,8 @@ final class Client
         array_push($data, '');
 
         $body = implode("\r\n", $data);
-        // var_dump($data);exit;
-        $contentType = 'multipart/form-data; boundary=' . $mimeBoundary;
-        $headers['content-type'] = $contentType;
-
-
-        $httpClient = new HttpClient($url);
-        $httpClient->setHeader('content-type',$contentType);
-        self::clientHandel($httpClient);
-//        $httpClient->getClient()->setData($body);
-        $response = $httpClient->post($body);
-        $response = new \EasySwoole\Oss\QiNiu\Http\Response($response);
-        return $response;
+        $headers['content-type'] = 'multipart/form-data; boundary=' . $mimeBoundary;
+        return self::post($url, $body, $headers);
     }
 
     private static function userAgent()

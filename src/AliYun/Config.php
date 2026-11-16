@@ -2,16 +2,39 @@
 
 namespace EasySwoole\Oss\AliYun;
 
+use EasySwoole\Oss\AliYun\Core\OssException;
 use EasySwoole\Spl\SplBean;
 
 class Config extends SplBean
 {
     protected $accessKeyId;//appid
     protected $accessKeySecret;//key
+    protected $region;
     protected $endpoint;//point
     protected $isCName = false;//是否对Bucket做了域名绑定，并且Endpoint参数填写的是自己的域名
     protected $timeout = 0;
     protected $connectionTimeout = 0;
+
+    public function getRegion(): string
+    {
+        if ($this->region !== null && $this->region !== '') {
+            return $this->region;
+        }
+
+        $endpoint = $this->getEndpoint();
+        $host = parse_url(str_contains($endpoint, '://') ? $endpoint : 'https://' . $endpoint, PHP_URL_HOST);
+        if ($host && preg_match('/^oss-([a-z0-9]+(?:-[a-z0-9]+)+?)(?:-internal)?\.aliyuncs\.com$/i', $host, $matches)
+            && !in_array(strtolower($matches[1]), ['accelerate-overseas'], true)) {
+            return strtolower($matches[1]);
+        }
+
+        throw new OssException('Set region explicitly when it cannot be derived from the OSS endpoint');
+    }
+
+    public function setRegion(string $region): void
+    {
+        $this->region = $region;
+    }
 
     /**
      * @return float|int

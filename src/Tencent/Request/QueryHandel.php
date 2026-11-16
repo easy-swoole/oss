@@ -55,7 +55,8 @@ class QueryHandel
 
     function handelParam($key, $param, $op)
     {
-        $keyName = $op['sentAs'] ?? $key;
+        $keyName = rawurlencode($op['sentAs'] ?? $key);
+        $param = rawurlencode((string)$param);
         $url = $this->request->getUrl();
         if (empty($url->getQuery())) {
             $queryStr = "$keyName=$param";

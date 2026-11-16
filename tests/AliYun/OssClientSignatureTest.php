@@ -118,7 +118,10 @@ class OssClientSignatureTest extends TestOssClientBase
             $end = time();
         } while ($begin != $end);
         $this->assertEquals($signedUrl1, $signedUrl2);
-        $this->assertTrue(strpos($signedUrl1, 'Expires=' . $expiration) !== false);
+        parse_str(parse_url($signedUrl1, PHP_URL_QUERY), $query);
+        $this->assertSame('OSS4-HMAC-SHA256', $query['x-oss-signature-version']);
+        $this->assertSame('3600', $query['x-oss-expires']);
+        $this->assertSame(gmdate('Ymd\THis\Z', $expiration - 3600), $query['x-oss-date']);
     }
 
     public function tearDown(): void

@@ -130,23 +130,33 @@ class OssClient
 
 
 
-    private function createPresignedUrl(HttpClient $request, $expires)
+    public function getPreSignedUrl($method, $args, $expires = null)
     {
-        return $this->signature->createPresignedUrl($request, $expires);
+        $operation = ucfirst($method);
+        if (isset($this->service['operations'][$operation]['parameters']['Body'])) {
+            $args += ['Body' => ''];
+        }
+        $command = $this->getCommand($operation, $args);
+        $request = $this->commandToRequestTransformer($command);
+        foreach ($args['Headers'] ?? [] as $name => $value) {
+            $request->setHeader($name, $value);
+        }
+        if (!empty($args['Params'])) {
+            $url = $request->getUrl();
+            $query = http_build_query($args['Params'], '', '&', PHP_QUERY_RFC3986);
+            $url->setQuery(ltrim($url->getQuery() . '&' . $query, '&'));
+        }
+        return $this->signature->createPresignedUrl($request, $expires, array_keys($args['Headers'] ?? []));
     }
 
     public function getPresignetUrl($method, $args, $expires = null)
     {
-        $command = $this->getCommand($method, $args);
-        $request = $this->commandToRequestTransformer($command);
-        return $this->createPresignedUrl($request, $expires);
+        return $this->getPreSignedUrl($method, $args, $expires);
     }
 
     public function getObjectUrl($bucket, $key, $expires = null, array $args = array())
     {
-        $command = $this->getCommand('GetObject', $args + array('Bucket' => $bucket, 'Key' => $key));
-        $request = $this->commandToRequestTransformer($command);
-        return $this->createPresignedUrl($request, $expires);
+        return $this->getPreSignedUrl('GetObject', $args + ['Bucket' => $bucket, 'Key' => $key], $expires);
     }
 
     public function upload($bucket, $key, $body, $options = array())
@@ -190,34 +200,32 @@ class OssClient
 
         $options['PartSize'] = isset($options['PartSize']) ? $options['PartSize'] : Copy::DEFAULT_PART_SIZE;
 
-        // set copysource client
-        $sourceConfig = $this->cosConfig;
-        $sourceConfig->setRegion($copySource['Region']);
+        $sourceConfig = clone $this->cosConfig;
+        $sourceConfig->setRegion(OssUtil::regionMap($copySource['Region']));
         $cosSourceClient = new OssClient($sourceConfig);
-        $copySource['VersionId'] = isset($copySource['VersionId']) ? $copySource['VersionId'] : "";
-        try {
-            $rt = $cosSourceClient->headObject(
-                array('Bucket'    => $copySource['Bucket'],
-                      'Key'       => $copySource['Key'],
-                      'VersionId' => $copySource['VersionId'],
-                )
-            );
-        } catch (\Exception $e) {
-            throw $e;
+        $sourceBucket = $copySource['Bucket'];
+        $appId = $sourceConfig->getAppId();
+        if ($appId !== null && !preg_match('/-[0-9]+$/', $sourceBucket)) {
+            $sourceBucket .= '-' . $appId;
         }
-
-        $contentLength = $rt['ContentLength'];
-        // sample copy
-        if ($contentLength < $options['PartSize']) {
-            $rt = $this->copyObject(array(
-                    'Bucket'     => $bucket,
-                    'Key'        => $key,
-                    'CopySource' => $copySource['Bucket'] . '.cos.' . $copySource['Region'] .
-                        ".myqcloud.com/" . $copySource['Key'] . "?versionId=" . $copySource['VersionId'],
-                ) + $options
-            );
-            return $rt;
+        $sourceObject = ['Bucket' => $sourceBucket, 'Key' => $copySource['Key']];
+        $sourcePath = $sourceBucket . '.cos.' . $sourceConfig->getRegion()
+            . '.myqcloud.com/' . OssUtil::encodeKey($copySource['Key']);
+        if (isset($copySource['VersionId']) && $copySource['VersionId'] !== '') {
+            $sourceObject['VersionId'] = $copySource['VersionId'];
+            $sourcePath .= '?versionId=' . rawurlencode($copySource['VersionId']);
         }
+        // The source bucket may have a different APPID.
+        $sourceConfig->setAppId(null);
+        $contentLength = $cosSourceClient->headObject($sourceObject)['ContentLength'];
+        if ($contentLength <= min($options['PartSize'], Copy::MAX_PART_SIZE)) {
+            return $this->copyObject([
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'CopySource' => $sourcePath,
+            ] + $options);
+        }
+        $copySource['Path'] = $sourcePath;
         // multi part copy
         $copySource['ContentLength'] = $contentLength;
         $copy = new Copy($this, $copySource, array(

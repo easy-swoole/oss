@@ -25,6 +25,11 @@ final class ResumeUploader
     private $host;
     private $currentUrl;
     private $config;
+    private $tokenError;
+    private $accessKey;
+    private $bucket;
+    private bool $checkCrc;
+    private ?string $resumeFile;
 
     /**
      * 上传二进制流到七牛
@@ -45,7 +50,9 @@ final class ResumeUploader
         $size,
         $params,
         $mime,
-        $config
+        $config,
+        $checkCrc = true,
+        $resumeFile = null
     ) {
 
         $this->upToken = $upToken;
@@ -57,16 +64,9 @@ final class ResumeUploader
         $this->contexts = array();
         $this->config = $config;
 
-        list($accessKey, $bucket, $err) = Util::explodeUpToken($upToken);
-        if ($err != null) {
-            return array(null, $err);
-        }
-
-        $upHost = $config->getUpHost($accessKey, $bucket);
-        if ($err != null) {
-            throw new \Exception($err->message(), 1);
-        }
-        $this->host = $upHost;
+        $this->checkCrc = $checkCrc;
+        $this->resumeFile = $resumeFile;
+        [$this->accessKey, $this->bucket, $this->tokenError] = Util::explodeUpToken($upToken);
     }
 
     /**
@@ -74,14 +74,27 @@ final class ResumeUploader
      */
     public function upload($fname)
     {
-        $uploaded = 0;
+        if ($this->tokenError !== null) {
+            return [null, $this->tokenError];
+        }
+        $this->host = $this->config->getUpHost($this->accessKey, $this->bucket);
+        $progress = new UploadProgress($this->resumeFile, $this->inputStream, [
+            'v1', $this->host, $this->accessKey, $this->bucket, $this->key,
+        ]);
+        $state = $progress->state;
+        $expires = $state['expires'] ?? 0;
+        $this->contexts = $expires > time() ? $state['contexts'] : [];
+        $uploaded = min($this->size, count($this->contexts) * Config::BLOCK_SIZE);
+        if ($this->resumeFile !== null && fseek($this->inputStream, $uploaded) !== 0) {
+            throw new \RuntimeException('Could not seek to Qiniu upload offset');
+        }
         while ($uploaded < $this->size) {
             $blockSize = $this->blockSize($uploaded);
             $data = fread($this->inputStream, $blockSize);
-            if ($data === false) {
+            if ($data === false || strlen($data) !== $blockSize) {
                 throw new \Exception("file read failed", 1);
             }
-            $crc = Util::crc32_data($data);
+            $crc = $this->checkCrc ? Util::crc32_data($data) : null;
             $response = $this->makeBlock($data, $blockSize);
             $ret = null;
             if ($response->ok() && $response->json() != null) {
@@ -96,18 +109,24 @@ final class ResumeUploader
                 $upHostBackup = $this->config->getUpBackupHost($accessKey, $bucket);
                 $this->host = $upHostBackup;
             }
-            if ($response->needRetry() || !isset($ret['crc32']) || $crc != $ret['crc32']) {
+            if ($response->needRetry() || empty($ret['ctx']) || ($this->checkCrc && ($ret['crc32'] ?? null) != $crc)) {
                 $response = $this->makeBlock($data, $blockSize);
                 $ret = $response->json();
             }
 
-            if (!$response->ok() || !isset($ret['crc32']) || $crc != $ret['crc32']) {
+            if (!$response->ok() || empty($ret['ctx']) || ($this->checkCrc && ($ret['crc32'] ?? null) != $crc)) {
                 return array(null, new Error($this->currentUrl, $response));
             }
             array_push($this->contexts, $ret['ctx']);
+            $expires = min($expires > time() ? $expires : PHP_INT_MAX, (int)($ret['expired_at'] ?? time() + 3600));
+            $progress->save(['expires' => $expires, 'contexts' => $this->contexts]);
             $uploaded += $blockSize;
         }
-        return $this->makeFile($fname);
+        $result = $this->makeFile($fname);
+        if ($result[1] === null || in_array((int)$result[1]->code(), [612, 701], true)) {
+            $progress->save([]);
+        }
+        return $result;
     }
 
     /**
@@ -156,7 +175,7 @@ final class ResumeUploader
     private function post($url, $data)
     {
         $this->currentUrl = $url;
-        $headers = array('Authorization' => 'UpToken ' . $this->upToken);
+        $headers = ['Authorization' => 'UpToken ' . $this->upToken, 'Content-Type' => 'application/octet-stream'];
         return Client::post($url, $data, $headers);
     }
 

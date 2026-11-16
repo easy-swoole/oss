@@ -137,60 +137,34 @@ class Region
         return $regionSingapore;
     }
 
-    /*
-     * GET /v2/query?ak=<ak>&&bucket=<bucket>
-     **/
+    public ?int $ttl = null;
+
     public static function queryRegion($ak, $bucket)
     {
-        $Region = new Region();
-        $url = Config::API_HOST . '/v2/query' . "?ak=$ak&bucket=$bucket";
-        $ret = Client::get($url);
-        if (!$ret->ok()) {
-            return array(null, new Error($url, $ret));
-        }
-        $r = ($ret->body === null) ? array() : $ret->json();
-        //parse Region;
-
-        $iovipHost = $r['io']['src']['main'][0];
-        $Region->iovipHost = $iovipHost;
-        $accMain = $r['up']['acc']['main'][0];
-        array_push($Region->cdnUpHosts, $accMain);
-        if (isset($r['up']['acc']['backup'])) {
-            foreach ($r['up']['acc']['backup'] as $key => $value) {
-                array_push($Region->cdnUpHosts, $value);
-            }
-        }
-        $srcMain = $r['up']['src']['main'][0];
-        array_push($Region->srcUpHosts, $srcMain);
-        if (isset($r['up']['src']['backup'])) {
-            foreach ($r['up']['src']['backup'] as $key => $value) {
-                array_push($Region->srcUpHosts, $value);
-            }
+        $url = 'https://' . Config::UC_HOST . '/v4/query?'
+            . http_build_query(['ak' => $ak, 'bucket' => $bucket], '', '&', PHP_QUERY_RFC3986);
+        $response = Client::get($url);
+        if (!$response->ok()) {
+            return [null, new Error($url, $response)];
         }
 
-        //set specific hosts
-        if (strstr($Region->iovipHost, "z1") !== false) {
-            $Region->rsHost = "rs-z1.qbox.me";
-            $Region->rsfHost = "rsf-z1.qbox.me";
-            $Region->apiHost = "api-z1.qiniu.com";
-        } elseif (strstr($Region->iovipHost, "z2") !== false) {
-            $Region->rsHost = "rs-z2.qbox.me";
-            $Region->rsfHost = "rsf-z2.qbox.me";
-            $Region->apiHost = "api-z2.qiniu.com";
-        } elseif (strstr($Region->iovipHost, "na0") !== false) {
-            $Region->rsHost = "rs-na0.qbox.me";
-            $Region->rsfHost = "rsf-na0.qbox.me";
-            $Region->apiHost = "api-na0.qiniu.com";
-        } elseif (strstr($Region->iovipHost, "as0") !== false) {
-            $Region->rsHost = "rs-as0.qbox.me";
-            $Region->rsfHost = "rsf-as0.qbox.me";
-            $Region->apiHost = "api-as0.qiniu.com";
-        } else {
-            $Region->rsHost = "rs.qbox.me";
-            $Region->rsfHost = "rsf.qbox.me";
-            $Region->apiHost = "api.qiniu.com";
+        $host = $response->json()['hosts'][0] ?? [];
+        $uploads = $host['up']['domains'] ?? [];
+        $io = $host['io']['domains'][0] ?? null;
+        if (empty($uploads[0]) || empty($io)) {
+            $response->error = 'Invalid region query response';
+            return [null, new Error($url, $response)];
         }
 
-        return $Region;
+        $region = new Region(
+            $uploads,
+            $uploads,
+            $host['rs']['domains'][0] ?? Config::RS_HOST,
+            $host['rsf']['domains'][0] ?? Config::RSF_HOST,
+            $host['api']['domains'][0] ?? Config::API_HOST,
+            $io
+        );
+        $region->ttl = (int)($host['ttl'] ?? 0);
+        return $region;
     }
 }

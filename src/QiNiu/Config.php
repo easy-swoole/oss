@@ -67,10 +67,9 @@ final class Config
             $scheme = "http://";
         }
 
-        $host = $region->cdnUpHosts[0];
-        if ($this->useCdnDomains === true) {
-            $host = $region->srcUpHosts[0];
-        }
+        $primary = $this->useCdnDomains ? $region->cdnUpHosts : $region->srcUpHosts;
+        $alternate = $this->useCdnDomains ? $region->srcUpHosts : $region->cdnUpHosts;
+        $host = $primary[1] ?? $alternate[0] ?? $primary[0];
 
         return $scheme . $host;
     }
@@ -131,14 +130,21 @@ final class Config
     {
         $cacheId = "$accessKey:$bucket";
 
-        if (isset($this->regionCache[$cacheId])) {
-            $region = $this->regionCache[$cacheId];
-        } elseif (isset($this->zone)) {
-            $region = $this->zone;
-            $this->regionCache[$cacheId] = $region;
-        } else {
-            $region = Zone::queryZone($accessKey, $bucket);
-            $this->regionCache[$cacheId] = $region;
+        if (isset($this->zone)) {
+            return $this->zone;
+        }
+
+        $cached = $this->regionCache[$cacheId] ?? null;
+        if ($cached !== null && $cached['expires'] > time()) {
+            return $cached['region'];
+        }
+
+        $region = Zone::queryZone($accessKey, $bucket);
+        if (!$region instanceof Region) {
+            throw new RegionQueryException($region[1]);
+        }
+        if ($region->ttl > 0) {
+            $this->regionCache[$cacheId] = ['region' => $region, 'expires' => time() + $region->ttl];
         }
         return $region;
     }

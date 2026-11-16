@@ -33,7 +33,8 @@ final class FormUploader
         $config,
         $params,
         $mime,
-        $fname
+        $fname,
+        $checkCrc = true
     ) {
         $fields = array('token' => $upToken);
         if ($key === null) {
@@ -42,7 +43,9 @@ final class FormUploader
         }
 
         //enable crc32 check by default
-        $fields['crc32'] = Util::crc32_data($data);
+        if ($checkCrc) {
+            $fields['crc32'] = Util::crc32_data($data);
+        }
 
         if ($params) {
             foreach ($params as $k => $v) {
@@ -55,7 +58,11 @@ final class FormUploader
             return array(null, $err);
         }
 
-        $upHost = $config->getUpHost($accessKey, $bucket);
+        try {
+            $upHost = $config->getUpHost($accessKey, $bucket);
+        } catch (\EasySwoole\Oss\QiNiu\RegionQueryException $error) {
+            return [null, $error->getError()];
+        }
 
         $response = Client::multipartPost($upHost, $fields, 'file', $fname, $data, $mime);
         if (!$response->ok()) {
@@ -111,7 +118,11 @@ final class FormUploader
             return array(null, $err);
         }
 
-        $upHost = $config->getUpHost($accessKey, $bucket);
+        try {
+            $upHost = $config->getUpHost($accessKey, $bucket);
+        } catch (\EasySwoole\Oss\QiNiu\RegionQueryException $error) {
+            return [null, $error->getError()];
+        }
 
         $response = Client::post($upHost, $fields, $headers);
         if (!$response->ok()) {

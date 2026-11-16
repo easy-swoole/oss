@@ -9,9 +9,6 @@ use EasySwoole\Oss\QiNiu\Util;
  */
 final class Response extends \EasySwoole\HttpClient\Bean\Response
 {
-    public $statusCode;
-    public $headers;
-    public $body;
     public $error;
     private $jsonData;
     public $duration;
@@ -92,7 +89,7 @@ final class Response extends \EasySwoole\HttpClient\Bean\Response
         $duration = $this->duration = 0;
         $headers = $this->headers = $response->getHeaders();
         $body = $this->body = $response->getBody();
-        $error = $this->error = $response->getErrMsg();
+        $error = $this->error = $code >= 100 ? null : $response->getErrMsg();
         $jsonData = $this->jsonData = null;
         if (!empty($error)) {
             return;
@@ -100,16 +97,16 @@ final class Response extends \EasySwoole\HttpClient\Bean\Response
 
         if ($body === null) {
             if ($code >= 400) {
-                $this->error = self::$statusTexts[$code];
+                $this->error = self::$statusTexts[$code] ?? ('HTTP ' . $code);
             }
             return;
         }
-        if (self::isJson($headers)) {
+        if (self::isJson($headers ?? [])) {
             try {
                 $jsonData = self::bodyJson($body);
                 if ($code >= 400) {
                     $this->error = $body;
-                    if ($jsonData['error'] !== null) {
+                    if (isset($jsonData['error'])) {
                         $this->error = $jsonData['error'];
                     }
                 }
@@ -126,7 +123,22 @@ final class Response extends \EasySwoole\HttpClient\Bean\Response
         return;
     }
 
-    public function json($assoc = false)
+    public function __get(string $name): mixed
+    {
+        return match ($name) {
+            'statusCode' => $this->getStatusCode(),
+            'headers' => $this->getHeaders(),
+            'body' => $this->getBody(),
+            default => null,
+        };
+    }
+
+    public function __isset(string $name): bool
+    {
+        return $this->__get($name) !== null;
+    }
+
+    public function json($assoc = false): mixed
     {
         return $this->jsonData;
     }
@@ -166,9 +178,7 @@ final class Response extends \EasySwoole\HttpClient\Bean\Response
     public function needRetry()
     {
         $code = $this->statusCode;
-        if ($code < 0 || ($code / 100 === 5 and $code !== 579) || $code === 996) {
-            return true;
-        }
+        return $code < 0 || ($code >= 500 && $code < 600 && $code !== 579) || $code === 996;
     }
 
     private static function isJson($headers)

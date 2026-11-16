@@ -40,14 +40,9 @@ class HttpClient extends BaseOssClient
         return $this->url;
     }
 
-    function setUrl($url): BaseOssClient
+    public function getSigningHeaders(): array
     {
-        if (is_string($url)) {
-            return parent::setUrl($url);
-        } elseif ($url instanceof Url) {
-            $this->url = $url;
-            return $this;
-        }
+        return array_change_key_case($this->header);
     }
 
     /**

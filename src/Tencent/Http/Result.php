@@ -45,7 +45,7 @@ class Result implements \ArrayAccess
                     $propertyValue = $response->getHeaders()[strtolower($property['sentAs']??$key)]??null;
                     break;
                 case "body":
-                    if ($property['instanceOf']){
+                    if (!empty($property['instanceOf'])) {
                         $propertyValue = new $property['instanceOf']($response->getBody());
                     }else{
                         $propertyValue = $response->getBody();

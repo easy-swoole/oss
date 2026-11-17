@@ -104,14 +104,33 @@ class OssClient
     function checkResponse(Response $response)
     {
         if ((int)(intval($response->getStatusCode()) / 100) != 2) {
-            $xmlBody = simplexml_load_string($response->getBody());
-            $jsonData = json_encode($xmlBody);
-            $body = json_decode($jsonData, true);
-            $exception = new ServiceResponseException($body['Message']);
-            $exception->setExceptionCode($body['Code']);
+            $body = [];
+            $responseBody = $response->getBody();
+            if (!is_null($responseBody) && trim($responseBody) !== '') {
+                $previous = libxml_use_internal_errors(true);
+                try {
+                    $xmlBody = simplexml_load_string($responseBody, 'SimpleXMLElement', LIBXML_NONET);
+                    if ($xmlBody !== false) {
+                        foreach (['Message', 'Code', 'RequestId'] as $field) {
+                            if (isset($xmlBody->$field)) {
+                                $body[$field] = (string) $xmlBody->$field;
+                            }
+                        }
+                    }
+                } finally {
+                    if (!$previous) {
+                        libxml_clear_errors();
+                    }
+                    libxml_use_internal_errors($previous);
+                }
+            }
+            $headers = array_change_key_case($response->getHeaders() ?? []);
+            $code = $body['Code'] ?? (string) $response->getStatusCode();
+            $exception = new ServiceResponseException($body['Message'] ?? 'HTTP request failed with status code ' . $response->getStatusCode());
+            $exception->setExceptionCode($code);
             $exception->setResponse($response);
-            $exception->setExceptionType($body['Code']);
-            $exception->setRequestId($body['RequestId']);
+            $exception->setExceptionType($code);
+            $exception->setRequestId($body['RequestId'] ?? $headers['x-cos-request-id'] ?? null);
             throw  $exception;
         }
         return true;
